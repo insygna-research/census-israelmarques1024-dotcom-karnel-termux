@@ -23,6 +23,22 @@ deploy_main() {
 
   local tool="$1"
   case "$tool" in
+  --help|-h)
+    echo
+    box "Karnel Deploy"
+    echo
+    log_info "Usage: karnel deploy <tool>"
+    echo
+    log_info "Available tools:"
+    echo
+    list_item "vercel    - Deploy to Vercel"
+    list_item "railway   - Deploy to Railway"
+    list_item "netlify   - Deploy to Netlify"
+    echo
+    log_info "Usage: ${D_CYAN}karnel deploy vercel${NC}"
+    echo
+    return
+    ;;
   vercel)
     if ! command -v vercel &>/dev/null; then
       log_warn "Vercel CLI not installed. Run: karnel install npm --vercel"

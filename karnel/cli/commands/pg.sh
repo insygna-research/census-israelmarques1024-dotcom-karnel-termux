@@ -390,6 +390,10 @@ pg_main() {
 	shift || true
 
 	case "$cmd" in
+	--help|-h)
+		pg_help
+		return
+		;;
 	start)
 		pg_start
 		;;

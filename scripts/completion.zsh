@@ -41,11 +41,14 @@ _karnel_modules() {
     'editor:Code editors'
     'games:Terminal games'
     'lang:Programming languages'
+    'network:Network tools'
     'npm:Node.js packages'
     'osint:OSINT tools'
     'plugin:Built-in plugin manager'
+    'security:Security tools'
     'shell:ZSH shell plugins'
     'ui:Termux UI components'
+    'utils:Utility scripts'
     'voice:Speech-to-agent tools'
   )
   _describe 'module' modules

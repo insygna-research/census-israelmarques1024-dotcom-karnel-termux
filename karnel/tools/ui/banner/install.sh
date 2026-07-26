@@ -71,15 +71,18 @@ _install_banner_impl() {
 
 $KARNEL_BANNER_MARKER
 source "$banner_script"
+if [[ -n "\$ZSH_VERSION" ]]; then
+  _karnel_show_banner() {
+    precmd_functions=("\${precmd_functions[@]:#_karnel_show_banner}")
+    [[ -f "\$_karnel_banner_cache" ]] && cat "\$_karnel_banner_cache"
+  }
+  precmd_functions+=(_karnel_show_banner)
+fi
 
 clear() {
-	builtin clear 2>/dev/null || /usr/bin/clear 2>/dev/null || clear
-	local _banner_cache="\${XDG_CACHE_HOME:-$HOME/.cache}/karnel/banner_cache"
-	if [[ -f "$_banner_cache" ]]; then
-		cat "$_banner_cache"
-	fi
+	builtin clear 2>/dev/null || /usr/bin/clear 2>/dev/null || true
+	[[ -f "\$_karnel_banner_cache" ]] && cat "\$_karnel_banner_cache"
 }
-export -f clear 2>/dev/null
 EOF
 
 	log_success "Karnel Banner installed"

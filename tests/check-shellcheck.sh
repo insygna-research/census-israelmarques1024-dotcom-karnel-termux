@@ -7,6 +7,11 @@ command -v shellcheck &>/dev/null || {
 }
 
 scripts=()
+if command -v git &>/dev/null && git rev-parse --git-dir &>/dev/null 2>&1; then
+  file_list=$(git ls-files -co --exclude-standard)
+else
+  file_list=$(find . -type f \( -name '*.sh' -o -name '*.bash' \) ! -path './node_modules/*' ! -path './.git/*')
+fi
 while IFS= read -r file; do
   [[ -f "$file" ]] || continue
   first_line=""
@@ -16,7 +21,7 @@ while IFS= read -r file; do
       scripts+=("$file")
       ;;
   esac
-done < <(git ls-files -co --exclude-standard)
+done <<< "$file_list"
 
 shellcheck --severity=error "${scripts[@]}"
 printf 'ShellCheck: %d Bash script(s), error gate clean\n' "${#scripts[@]}"

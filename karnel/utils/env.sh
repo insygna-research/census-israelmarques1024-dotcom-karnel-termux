@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 
-KARNEL_VERSION="4.11.6"
+KARNEL_VERSION="4.12.0"
 
 # -------------------------
 # Directorios del usuario
 # -------------------------
+
+: "${HOME:?HOME is unset — cannot determine config paths}"
 
 # configuración
 KARNEL_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/karnel"
@@ -32,21 +34,13 @@ KARNEL_PLUGINS="$KARNEL_DATA/plugins"
 # Crear directorios
 # -------------------------
 
-mkdir -p \
+mkdir -p -m 700 \
   "$KARNEL_CONFIG" \
   "$KARNEL_CACHE" \
   "$KARNEL_DATA" \
   "$KARNEL_TOOLS" \
   "$KARNEL_RUN" \
   "$KARNEL_LOGS"
-
-chmod 700 \
-  "$KARNEL_CONFIG" \
-  "$KARNEL_CACHE" \
-  "$KARNEL_DATA" \
-  "$KARNEL_TOOLS" \
-  "$KARNEL_RUN" \
-  "$KARNEL_LOGS" 2>/dev/null || true
 
 # -------------------------
 # TUI Colors - Ruby & Obsidian

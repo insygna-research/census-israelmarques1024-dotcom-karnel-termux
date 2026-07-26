@@ -111,7 +111,7 @@ bootstrap_dependencies() {
 
 	if [[ $needed_tput -eq 1 ]]; then
 		echo -e "  ${P_BORDER}→${P_NC}  Installing ncurses-utils..."
-		pkg install -y ncurses &>/dev/null
+		pkg install -y ncurses-utils &>/dev/null
 		echo -e "  ${P_OK}✔${P_NC}  ncurses installed"
 		echo
 	fi
@@ -210,7 +210,7 @@ clone_repo() {
 			printf "\r  Cloning%s    " "$(printf '%*s' "$dots" '' | tr ' ' '.')"
 			sleep 0.5
 		done
-		wait "$pid"
+		wait "$pid" || { log_fail "Failed to clone repository"; _cleanup_failed; exit 1; }
 		progress_bar 10 10
 		echo
 		log_ok "Repository cloned"
@@ -220,7 +220,8 @@ clone_repo() {
 
 	# Install shell completions
 	if [ -f "$KARNEL_REPO/scripts/completion.bash" ]; then
-		cp "$KARNEL_REPO/scripts/completion.bash" "$PREFIX/share/bash-completion/completions/karnel" 2>/dev/null || true
+		mkdir -p "$PREFIX/share/bash-completion/completions" 2>/dev/null || true
+		cp "$KARNEL_REPO/scripts/completion.bash" "$PREFIX/share/bash-completion/completions/karnel" 2>/dev/null || log_warn "Failed to install bash completion"
 	fi
 	if [ -f "$KARNEL_REPO/scripts/completion.zsh" ]; then
 		cp "$KARNEL_REPO/scripts/completion.zsh" "$PREFIX/share/zsh/site-functions/_karnel" 2>/dev/null || true

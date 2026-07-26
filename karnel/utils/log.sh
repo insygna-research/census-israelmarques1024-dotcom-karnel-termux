@@ -54,7 +54,7 @@ list_item_check() {
 
 separator() {
 	local cols
-	cols=$(tput cols)
+	cols=$(tput cols 2>/dev/null || echo 80)
 	local line
 	line=$(printf "%${cols}s")
 	echo -e "${GRAY}${line// /─}${NC}"
@@ -62,7 +62,7 @@ separator() {
 
 separator_double() {
 	local cols
-	cols=$(tput cols)
+	cols=$(tput cols 2>/dev/null || echo 80)
 	local line
 	line=$(printf "%${cols}s")
 	echo -e "${GRAY}${line// /═}${NC}"
@@ -72,7 +72,7 @@ separator_double() {
 separator_section() {
 	local title="$1"
 	local cols
-	cols=$(tput cols)
+	cols=$(tput cols 2>/dev/null || echo 80)
 	local padding=$(( (cols - ${#title} - 2) / 2 ))
 	local line
 	line=$(printf "%${padding}s")
@@ -108,7 +108,7 @@ box_with_subtitle() {
 
 center_text() {
 	local cols
-	cols=$(tput cols)
+	cols=$(tput cols 2>/dev/null || echo 80)
 	local text="$1"
 	local padding=$(( (cols - ${#text}) / 2 ))
 
@@ -295,6 +295,7 @@ read_secret() {
 
 	local old_stty
 	old_stty=$(stty -g 2>/dev/null)
+	trap 'stty "$old_stty" 2>/dev/null; echo >&2; return 1' INT TERM
 	stty -echo -icanon min 1 time 0 2>/dev/null
 
 	while true; do
@@ -302,7 +303,7 @@ read_secret() {
 		if [[ "$char" == $'\n' ]] || [[ "$char" == $'\r' ]] || [[ -z "$char" ]]; then
 			break
 		fi
-		if [[ "$char" == $'\177' ]] || [[ "$char" == $'\b' ]] || [[ "$char" == $'\x7f' ]]; then
+		if [[ "$char" == $'\177' ]] || [[ "$char" == $'\b' ]]; then
 			if [[ -n "$_val" ]]; then
 				_val="${_val%?}"
 				echo -ne "\b \b" >&2
@@ -314,6 +315,7 @@ read_secret() {
 	done
 
 	stty "$old_stty" 2>/dev/null
+	trap - INT TERM
 	echo >&2
 	read -r "$var" <<<"$_val"
 }
@@ -436,7 +438,7 @@ read_select() {
 	local selected=0
 	local total=${#options[@]}
 	local cols
-	cols=$(tput cols)
+	cols=$(tput cols 2>/dev/null || echo 80)
 	local margin=6
 	local max_width=$((cols - margin))
 
@@ -458,7 +460,7 @@ read_select() {
 
 	local lines=$((total + 1))
 
-	tput civis
+	tput civis 2>/dev/null || true
 	_render_select
 
 	while true; do
@@ -479,7 +481,7 @@ read_select() {
 	done
 
 	echo >&2
-	tput cnorm
+	tput cnorm 2>/dev/null || true
 
 	read -r "$var" <<<"${options[$selected]}"
 	echo -e "    ${GRAY}└─${D_CYAN}▶ ${D_NC}${options[$selected]}${D_NC}" >&2
@@ -494,12 +496,15 @@ loading() {
 	local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
 	local delay=0.08
 	local tmpfile
-	tmpfile="$(mktemp)"
+	tmpfile="$(mktemp "${TMPDIR:-/tmp}/karnel.XXXXXX")"
+	local cmd_pid=""
+
+	trap 'kill "$cmd_pid" 2>/dev/null; rm -f "$tmpfile"; return 1' INT TERM
 
 	printf "    ${CYAN}⠋${D_CYAN} %s${NC}" "$message"
 
 	"$@" >"$tmpfile" 2>&1 &
-	local cmd_pid=$!
+	cmd_pid=$!
 
 	mkdir -p "$KARNEL_CACHE"
 
@@ -510,8 +515,9 @@ loading() {
 		sleep "$delay"
 	done
 
-	wait "$cmd_pid"
+	wait "$cmd_pid" 2>/dev/null
 	local exit_code=$?
+	trap - INT TERM
 
 	if [[ $exit_code -eq 0 ]]; then
 		printf "\r    ${GREEN}✔${D_GREEN} %s${NC}\n" "$message"
@@ -538,6 +544,7 @@ progress_bar() {
 	local current=$1
 	local total=$2
 	local width=${3:-50}
+	((total == 0)) && total=1
 	_progress_current=$current
 	_progress_total=$total
 	_progress_width=$width
@@ -573,6 +580,7 @@ progress_update() {
 	local current=$1
 	local total=$2
 	local width="${_progress_width:-50}"
+	((total == 0)) && total=1
 	local target_filled=$((current * width / total))
 
 	local prev="${_progress_filled:-0}"

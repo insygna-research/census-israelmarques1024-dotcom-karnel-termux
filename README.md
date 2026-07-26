@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/israelmarques1024-dotcom/karnel-termux">
-    <img src="https://img.shields.io/badge/version-4.11.0-0078D4?style=for-the-badge" alt="Version">
+    <img src="https://img.shields.io/badge/version-4.12.0-0078D4?style=for-the-badge" alt="Version">
   </a>
   <a href="https://www.npmjs.com/package/karnel-termux">
     <img src="https://img.shields.io/npm/v/karnel-termux?style=for-the-badge&logo=npm&color=cb3837" alt="npm">
@@ -33,8 +33,8 @@
 
 Created by **Israel Marques**.
 
-- **31 AI agents** for coding — Claude, Gemini, OpenCode, Ollama, Cline, karnelRoute and more
-- **7 languages** — Node.js, Python, Go, Rust, C/C++, PHP, Perl
+- **32 AI agents** for coding — Claude, Gemini, OpenCode, Qoder, Ollama, Cline, karnelRoute and more
+- **8 languages** — Node.js, Python, Go, Rust, C/C++, PHP, Perl, Bun
 - **5 databases** — PostgreSQL, MariaDB, SQLite, MongoDB, Redis
 - **22 dev tools** — gh, curl, fzf, bat, lsd, jq, tmux, openssh, snyk and more
 - **11 utility scripts** — fconv, notes, treex, qrcode, zork and more
@@ -112,9 +112,9 @@ karnel
 
 | Module | Description | Installation |
 |--------|-------------|--------------|
-| `lang` | Node.js, Python, Go, Rust, C/C++, PHP, Perl | `karnel install lang` |
+| `lang` | Node.js, Python, Go, Rust, C/C++, PHP, Perl, Bun | `karnel install lang` |
 | `db` | PostgreSQL, MariaDB, SQLite, MongoDB, Redis | `karnel install db` |
-| `ai` | 31 AI agents for coding | `karnel install ai` |
+| `ai` | 32 AI agents for coding | `karnel install ai` |
 | `editor` | code-server (VS Code in browser) | `karnel install editor` |
 | `dev` | gh, curl, fzf, bat, lsd, jq and more | `karnel install dev` |
 | `npm` | TypeScript, NestJS CLI, Prettier and more | `karnel install npm` |
@@ -212,7 +212,7 @@ See the bundled reference with `karnel show osint --robin`.
 
 ---
 
-## AI Agents (31)
+## AI Agents (32)
 
 ```bash
 karnel install ai                             # Install all
@@ -237,6 +237,7 @@ karnel install ai --opencode --ollama         # Install specific agents
 | **Engram** | `--engram` | Persistent memory system |
 | **CodeGraph** | `--codegraph` | Code structure analysis |
 | **Pi** | `--pi` | Minimalist terminal harness |
+| **Qoder** | `--qoder` | Terminal-native AI coding partner and agent engine |
 | **Antigravity CLI** | `--antigravity-cli` | Terminal interface for Antigravity |
 | **MiniMax CLI** | `--minimax-cli` | Generate text, image, video and audio |
 | **Gentle AI** | `--gentle-ai` | AI workflow ecosystem |
@@ -486,18 +487,20 @@ karnel/
 │   │   └── karnel.sh    # Main CLI (with TUI)
 │   ├── modules/       # Module orchestrators
 │   ├── tools/         # Tool installers
-│   │   ├── ai/        # 31 AI agents
-│   │   ├── lang/      # Languages
-│   │   ├── db/        # Databases
+│   │   ├── ai/        # 32 AI agents
+│   │   ├── lang/      # 8 languages
+│   │   ├── db/        # 5 databases
 │   │   ├── dev/       # 22 dev tools
-│   │   ├── editor/    # Code editor
-│   │   ├── npm/       # Global npm packages
-│   │   ├── shell/     # ZSH plugins
-│   │   ├── ui/        # Termux interface
-│   │   ├── auto/      # Automation
+│   │   ├── editor/    # 3 editors
+│   │   ├── npm/       # 11 global npm packages
+│   │   ├── shell/     # 10 ZSH plugins
+│   │   ├── ui/        # 4 UI components
+│   │   ├── auto/      # 1 automation tool
 │   │   ├── network/   # 2 network tools
 │   │   ├── utils/     # 11 utility tools
-│   │   └── deploy/    # Deploy CLIs
+│   │   ├── games/     # 7 games
+│   │   ├── security/  # 30 security tools
+│   │   └── deploy/    # 4 deploy CLIs
 │   └── utils/         # Utilities (banner, log, env, etc.)
 ├── install.sh         # Installation script
 ├── package.json       # npm/pnpm publishing

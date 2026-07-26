@@ -1,12 +1,7 @@
 #!/usr/bin/env bash
 # shellcheck disable=all
-[[ -n "$ZSH_VERSION" ]] && emulate -L bash 2>/dev/null || true
 # Note: deliberately NOT using set -e here — it leaks errexit to the parent
 # shell, causing non-existent commands to exit zsh with code 127.
-
-BANNER_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
-BANNER_VERSION="$(grep "^KARNEL_VERSION=" "$BANNER_SCRIPT_DIR/env.sh" 2>/dev/null | cut -d'"' -f2)"
-[[ -z "$BANNER_VERSION" ]] && BANNER_VERSION="1.0.0"
 
 ESC=$(printf '\033')
 BOLD="${ESC}[1m"
@@ -100,41 +95,7 @@ _repeat() {
   printf '%s' "$out"
 }
 
-# ================================================================
-# Counters
-# ================================================================
-_count_ai() {
-  local reg="$KARNEL_PATH/tools/ai/all.sh"
-  local c=0
-  if [[ -f "$reg" ]]; then
-    while IFS= read -r line; do
-      [[ "$line" =~ ^[[:space:]]*\"([^\"]+)\" ]] || continue
-      local entry="${BASH_REMATCH[1]}"
-      local bin="${entry##*:}"
-      command -v "$bin" &>/dev/null && ((c++))
-    done < <(grep -E '^\s+"' "$reg" 2>/dev/null || true)
-  fi
-  echo "$c"
-}
-_count_lang() { local c=0; for cmd in node python rustc go clang php perl bun; do command -v "$cmd" &>/dev/null && ((c++)); done; echo "$c"; }
-_count_db() { local c=0; command -v pg_ctl &>/dev/null && ((c++)); command -v mariadb &>/dev/null && ((c++)); command -v sqlite3 &>/dev/null && ((c++)); command -v mongod &>/dev/null && ((c++)); command -v redis-cli &>/dev/null && ((c++)); echo "$c"; }
-_count_doctor() {
-  local doc_sh="$KARNEL_PATH/cli/commands/doctor/code_langs.sh"
-  if [[ -f "$doc_sh" ]]; then
-    local count; count=$(grep -c 'LANG_TOOLS\[' "$doc_sh" 2>/dev/null || echo 0)
-    echo "$count"
-  else echo "0"; fi
-}
-_pg_status() {
-  if command -v pg_ctl &>/dev/null; then
-    local data="$KARNEL_DATA/pg/data"
-    if [[ -d "$data" ]] && pg_ctl status -D "$data" &>/dev/null 2>&1; then
-      echo "ON"
-    else
-      echo "OFF"
-    fi
-  else echo "—"; fi
-}
+
 
 # ================================================================
 # Figlet-generated text with red-black gradient
@@ -250,18 +211,7 @@ _render_frame_line() {
 # ================================================================
 # Panel
 # ================================================================
-PANEL_HEADERS=("AI" "Lang" "DB" "Doctor" "PG")
-PANEL_ICONS=("◆" "</>" "⛁" "◈" "🐘")
 
-_panel_value() {
-  case $1 in
-    0) echo "${KAI_VAL:-$(_count_ai)}" ;;
-    1) echo "${KLANG_VAL:-$(_count_lang)}" ;;
-    2) echo "${KDB_VAL:-$(_count_db)}" ;;
-    3) echo "${KDOCTOR_VAL:-$(_count_doctor)}" ;;
-    4) echo "${KPG_VAL:-$(_pg_status)}" ;;
-  esac
-}
 
 # ================================================================
 # Render
@@ -285,6 +235,28 @@ _render_top() {
   echo "${pad_l}${l_border}│${NC}${sp_line}${r_border}│${NC}${pad_r}"
 }
 
+_render_text_logo() {
+  local cols="${COLUMNS:-$(tput cols 2>/dev/null || echo 80)}"
+  local W=$(( cols > 72 ? 68 : cols - 6 ))
+  (( W < 40 )) && W=40
+  local GAP_L=$(( (cols - W - 2) / 2 ))
+  (( GAP_L < 0 )) && GAP_L=0
+  local GAP_R=$(( cols - W - 2 - GAP_L ))
+  (( GAP_R < 0 )) && GAP_R=0
+  local pad_l; pad_l=$(printf '%*s' "$GAP_L" '')
+  local pad_r; pad_r=$(printf '%*s' "$GAP_R" '')
+  local title="KARNEL   TERMUX"
+  local ver_line="v${KARNEL_VERSION:-4.x}"
+  local subtitle="by israel marques"
+  echo "${pad_l}${TP[0]}╭$(printf '%*s' $((W+2)) '' | tr ' ' '─')╮${pad_r}"
+  echo "${pad_l}${TP[0]}│${NC}$(printf '%*s' $W '' | tr ' ' ' ')${TP[15]}│${pad_r}"
+  echo "${pad_l}${TP[0]}│${NC}$(printf '%*s' $(((W-${#title})/2)) '')${TP[7]}${title}${NC}$(printf '%*s' $(((W-${#title}+1)/2)) '')${TP[15]}│${pad_r}"
+  echo "${pad_l}${TP[0]}│${NC}$(printf '%*s' $W '' | tr ' ' ' ')${TP[15]}│${pad_r}"
+  echo "${pad_l}${TP[0]}│${NC}$(printf '%*s' $(((W-${#ver_line})/2)) '')${GRAY}${ver_line}${NC}$(printf '%*s' $(((W-${#ver_line}+1)/2)) '')${TP[15]}│${pad_r}"
+  echo "${pad_l}${TP[0]}│${NC}$(printf '%*s' $(((W-${#subtitle})/2)) '')${DIM}${subtitle}${NC}$(printf '%*s' $(((W-${#subtitle}+1)/2)) '')${TP[15]}│${pad_r}"
+  echo "${pad_l}${TP[0]}╰$(printf '%*s' $((W+2)) '' | tr ' ' '─')╯${pad_r}"
+}
+
 _render_figlet() {
   local _anim_off="${1:-0}" _slow="${2:-}"
   local cols="${COLUMNS:-$(tput cols 2>/dev/null || echo 80)}"
@@ -299,6 +271,11 @@ _render_figlet() {
   local l_border="${TP[0]}" r_border="${TP[15]}"
 
   local num_fl=${#FIGLET_LINES[@]} num_tl=${#TERMUX_FIGLET_LINES[@]}
+
+  if (( num_fl == 0 && num_tl == 0 )); then
+    _render_text_logo
+    return
+  fi
   local _fi _ti _line _ci _colored _scan2 _fig_w=0 _fl2 _total_fig_lines=$(( num_fl + num_tl ))
   for _fl2 in "${FIGLET_LINES[@]}"; do local _tl2=${#_fl2}; (( _tl2 > _fig_w )) && _fig_w=$_tl2; done
   local _step=$(( (_fig_w + 16) * 1 / (_total_fig_lines > 1 ? _total_fig_lines - 1 : 1) ))
@@ -359,43 +336,8 @@ _render_bottom() {
 
   local gem_line="${M_SHINE}◈${NC} ${BOLD}${RUBY}Dev${NC} ${WHITE}${BOLD}&${NC} ${BOLD}${OBSIDIAN}mobile${NC} ${M_SHINE}◈${NC}"
   echo "${pad_l}${l_border}│${NC}$(_center "$gem_line" "$W")${r_border}│${NC}${pad_r}"
-  echo "${pad_l}${l_border}│${NC}$(_center "${GREEN2}${BOLD}Karnel${NC} ${GREEN1}v${BANNER_VERSION}${NC}" "$W")${r_border}│${NC}${pad_r}"
+  echo "${pad_l}${l_border}│${NC}$(_center "${GREEN2}${BOLD}Karnel${NC} ${GREEN1}Termux${NC}" "$W")${r_border}│${NC}${pad_r}"
   echo "${pad_l}${l_border}│${NC}$(_center "${DIM}by${NC} ${BOLD}${WHITE}israel${NC} ${WHITE}marques${NC}" "$W")${r_border}│${NC}${pad_r}"
-  echo "${pad_l}${l_border}│${NC}${sp_line}${r_border}│${NC}${pad_r}"
-
-  local PW=$(( W - 4 ))
-  (( PW < 20 )) && PW=20
-  local phline; phline=$(_repeat '─' "$PW")
-
-  echo "${pad_l}${l_border}│${NC} ${M_SHINE}╭${NC}${phline}${M_SHINE}╮${NC} ${r_border}│${NC}${pad_r}"
-  local ph=" ${M_SHINE}◈${NC} ${BOLD}${WHITE}STATUS${NC} ${M_SHINE}◈${NC} "
-  echo "${pad_l}${l_border}│${NC} ${M_SHINE}│${NC}$(_center "$ph" "$PW")${M_SHINE}│${NC} ${r_border}│${NC}${pad_r}"
-
-  local psep="" pj
-  for (( pj = 0; pj < PW; pj++ )); do
-    local m=$(( pj % 4 ))
-    if (( m == 0 )); then psep+="─"
-    elif (( m == 1 )); then psep+="┄"
-    elif (( m == 2 )); then psep+="·"
-    else psep+="─"; fi
-  done
-  echo "${pad_l}${l_border}│${NC} ${TP[3]}│${NC}${DIM}${psep}${NC}${TP[11]}│${NC} ${r_border}│${NC}${pad_r}"
-
-  local col_w=$(( (PW - 4) / 5 ))
-  local col_line=""
-  for (( i = 0; i < 5; i++ )); do
-    local val; val=$(_panel_value $i)
-    local entry="${TP[$(( i * 3 + 1 ))]}${PANEL_ICONS[$i]}${NC} ${BOLD}${WHITE}${PANEL_HEADERS[$i]}${NC} ${GREEN1}${val}${NC}"
-    local ev; ev=$(_ansi_len "$entry")
-    local epad=$(( (col_w - ev) / 2 ))
-    local epad2=$(( col_w - ev - epad ))
-    (( epad < 0 )) && epad=0
-    (( epad2 < 0 )) && epad2=0
-    col_line+="$(printf '%*s' "$epad" '')${entry}$(printf '%*s' "$epad2" '')"
-    (( i < 4 )) && col_line+="${GRAY}│${NC}"
-  done
-  echo "${pad_l}${l_border}│${NC} ${TP[3]}│${NC}${col_line}${TP[11]}│${NC} ${r_border}│${NC}${pad_r}"
-  echo "${pad_l}${l_border}│${NC} ${M_SHINE}╰${NC}${phline}${M_SHINE}╯${NC} ${r_border}│${NC}${pad_r}"
   echo "${pad_l}${l_border}│${NC}${sp_line}${r_border}│${NC}${pad_r}"
 
   local dot_line="" dj
@@ -429,7 +371,7 @@ _show_tip() {
     while [[ "$new_index" == "$last_index" ]]; do new_index=$(( RANDOM % ${#KARNEL_TIPS[@]} )); done
     echo "$new_index" >"$_tip_index_file"
     _tip="${KARNEL_TIPS[$new_index]:-}"
-    [[ -n "$_tip" ]] && { echo; log_tip "$_tip"; }
+    [[ -n "$_tip" ]] && echo -e "\n ${TP[3]}●${NC} ${GRAY}Tip${NC} $_tip"
   fi
 }
 
@@ -440,18 +382,13 @@ _render_animated() {
   _show_tip
 }
 
-# Cache panel values so animation frames don't re-run system commands
-KAI_VAL=$(_count_ai)
-KLANG_VAL=$(_count_lang)
-KDB_VAL=$(_count_db)
-KDOCTOR_VAL=$(_count_doctor)
-KPG_VAL=$(_pg_status)
-
 # Cache banner for clear() override (capture only, no terminal output)
 _banner_output=$(_render 2>/dev/null) || true
 _karnel_banner_cache="${XDG_CACHE_HOME:-$HOME/.cache}/karnel/banner_cache"
 mkdir -p "$(dirname "$_karnel_banner_cache")" 2>/dev/null
-[[ -t 1 ]] && echo "$_banner_output" > "$_karnel_banner_cache" 2>/dev/null
+if [[ -t 1 ]] && [[ -n "$_banner_output" ]]; then
+  echo "$_banner_output" > "$_karnel_banner_cache" 2>/dev/null
+fi
 
 banner_tip() { echo " ${TP[3]}●${NC} ${GRAY}Tip${NC} $*"; }
 
@@ -497,8 +434,36 @@ KARNEL_TIPS=(
   "Second brain: ${TP[3]}karnel brain init${NC}"
   "Save memories: ${TP[3]}karnel brain save${NC}"
   "Voice-to-AI: ${TP[3]}karnel voice opencode${NC}"
+  "Voice quick output: ${TP[3]}karnel voice text${NC}"
   "Init Next.js: ${TP[3]}cd my-app && karnel init next${NC}"
-  "Init Express: ${TP[3]}cd api && karnel init express${NC}"
+  "Init React+Vite: ${TP[3]}cd my-app && karnel init react${NC}"
+  "Init Express API: ${TP[3]}cd api && karnel init express${NC}"
+  "Init NestJS: ${TP[3]}cd backend && karnel init nest${NC}"
+  "Install Qoder: ${TP[3]}karnel install ai --qoder${NC}"
+  "Install Kilo Code: ${TP[3]}karnel install ai --kilocode-cli${NC}"
+  "Install Freebuff: ${TP[3]}karnel install ai --freebuff${NC}"
+  "Install Ollama (local LLMs): ${TP[3]}karnel install ai --ollama${NC}"
+  "Install Qwen Code: ${TP[3]}karnel install ai --qwen-code${NC}"
+  "Install Hermes Agent: ${TP[3]}karnel install ai --hermes-agent${NC}"
+  "Install n8n automation: ${TP[3]}karnel install auto --n8n${NC}"
+  "Install code-server: ${TP[3]}karnel install editor --code-server${NC}"
+  "Install ImageMagick: ${TP[3]}karnel install dev --imagemagick${NC}"
+  "Cloudflare Tunnel: ${TP[3]}karnel install dev --cloudflared${NC}"
+  "Translate from terminal: ${TP[3]}karnel install dev --translate${NC}"
+  "Share terminal instantly: ${TP[3]}karnel install dev --tmate${NC}"
+  "Run Docker without root: ${TP[3]}karnel install dev --udocker${NC}"
+  "Tunnel localhost: ${TP[3]}karnel install npm --ngrok${NC}"
+  "Format code: ${TP[3]}karnel install npm --prettier${NC}"
+  "Install Meslo Font: ${TP[3]}karnel install ui --font${NC}"
+  "Green cursor: ${TP[3]}karnel install ui --cursor${NC}"
+  "Extra keys bar: ${TP[3]}karnel install ui --extra-keys${NC}"
+  "Powerlevel10k theme: ${TP[3]}karnel install shell --powerlevel10k${NC}"
+  "Backup everything: ${TP[3]}karnel backup${NC}"
+  "Restore from backup: ${TP[3]}karnel restore${NC}"
+  "Run diagnostics: ${TP[3]}karnel doctor${NC}"
+  "Search all tools: ${TP[3]}karnel search <query>${NC}"
+  "Quick system status: ${TP[3]}karnel status${NC}"
+  "israel marques 🇧🇷 — author of Karnel Termux"
 )
 
 _block_input() {
@@ -513,7 +478,9 @@ _unblock_input() {
 # Exportado para ser chamado pelo karnel.sh quando necessário
 render_banner() {
   _block_input
+  trap '_unblock_input' EXIT INT TERM
   _render_animated
   _unblock_input
+  trap - EXIT INT TERM
   echo
 }

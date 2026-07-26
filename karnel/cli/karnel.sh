@@ -17,10 +17,15 @@ karnel_main() {
     return
   fi
 
-  # special case: --version
+  # special cases: --version, --help
   if [[ "$cmd" == "--version" ]]; then
     import "@/cli/commands/version"
     version_main
+    return
+  fi
+
+  if [[ "$cmd" == "--help" || "$cmd" == "-h" ]]; then
+    karnel_help
     return
   fi
 
@@ -63,36 +68,34 @@ karnel_help() {
   echo
   separator_section "Available Commands"
   echo
-  printf "    ${D_CYAN}%-12s${NC} %s\n" "--version" "Show current version"
-  printf "    ${D_CYAN}%-12s${NC} %s\n" "backup" "Backup all Termux configs + tools"
-  printf "    ${D_CYAN}%-12s${NC} %s\n" "brain" "Second brain — save, search, and query memories"
-  printf "    ${D_CYAN}%-12s${NC} %s\n" "cleanup" "Clean caches, logs, and temp files"
-  printf "    ${D_CYAN}%-12s${NC} %s\n" "deploy" "Deploy projects to Vercel, Railway, Netlify"
-  printf "    ${D_CYAN}%-12s${NC} %s\n" "doctor" "Run diagnostics (termux/code)"
-  printf "    ${D_CYAN}%-12s${NC} %s\n" "doctor termux" "Full Termux environment diagnostics"
-  printf "    ${D_CYAN}%-12s${NC} %s\n" "doctor code" "Analyze project code structure"
-  printf "    ${D_CYAN}%-12s${NC} %s\n" "env" "Manage environment variables"
-  printf "    ${D_CYAN}%-12s${NC} %s\n" "help" "Show this help screen"
-  printf "    ${D_CYAN}%-12s${NC} %s\n" "ia" "AI agent manager — sessions, install, routes"
-  printf "    ${D_CYAN}%-12s${NC} %s\n" "init" "Scaffold projects (Next, React, Nest, etc.)"
-  printf "    ${D_CYAN}%-12s${NC} %s\n" "install" "Install modules and packages"
-  printf "    ${D_CYAN}%-12s${NC} %s\n" "list" "List available tools in a module"
-  printf "    ${D_CYAN}%-12s${NC} %s\n" "open" "Open docs in browser for a module"
-  printf "    ${D_CYAN}%-12s${NC} %s\n" "pg" "PostgreSQL database manager"
-  printf "    ${D_CYAN}%-12s${NC} %s\n" "plugin" "Plugin manager — install, list, remove"
-  printf "    ${D_CYAN}%-12s${NC} %s\n" "reinstall" "Uninstall + install a module"
-  printf "    ${D_CYAN}%-12s${NC} %s\n" "restore" "Restore Termux from a backup"
-  printf "    ${D_CYAN}%-12s${NC} %s\n" "robin" "Dark Web OSINT tool (Tor + LLM)"
-  printf "    ${D_CYAN}%-12s${NC} %s\n" "search" "Search across all tools and memories"
-  printf "    ${D_CYAN}%-12s${NC} %s\n" "show" "Show README/docs for a tool"
-  printf "    ${D_CYAN}%-12s${NC} %s\n" "start" "Start services (code-server, etc.)"
-  printf "    ${D_CYAN}%-12s${NC} %s\n" "status" "Quick system overview"
-  printf "    ${D_CYAN}%-12s${NC} %s\n" "supabase" "Supabase CLI (types, migrate, functions, secrets)"
-  printf "    ${D_CYAN}%-12s${NC} %s\n" "uninstall" "Remove installed modules"
-  printf "    ${D_CYAN}%-12s${NC} %s\n" "update" "Update modules or framework"
-  printf "    ${D_CYAN}%-12s${NC} %s\n" "upgrade" "Upgrade Karnel framework itself"
-  printf "    ${D_CYAN}%-12s${NC} %s\n" "version" "Show current version"
-  printf "    ${D_CYAN}%-12s${NC} %s\n" "voice" "Speech-to-agent via microphone"
+  printf "    ${D_CYAN}%-18s${NC} %s\n" "--version" "Show current version"
+  printf "    ${D_CYAN}%-18s${NC} %s\n" "backup [--cron,--cloud,snapshot,list]" "Backup all Termux configs + tools"
+  printf "    ${D_CYAN}%-18s${NC} %s\n" "brain [init,ls,save,search,ask,edit,graph,sync,reset]" "Second brain — save, search, and query memories"
+  printf "    ${D_CYAN}%-18s${NC} %s\n" "cleanup" "Clean caches, logs, and temp files"
+  printf "    ${D_CYAN}%-18s${NC} %s\n" "deploy [vercel,railway,netlify]" "Deploy projects to Vercel, Railway, Netlify"
+  printf "    ${D_CYAN}%-18s${NC} %s\n" "doctor [termux,code,robin]" "Run diagnostics"
+  printf "    ${D_CYAN}%-18s${NC} %s\n" "env [set,unset,list]" "Manage environment variables"
+  printf "    ${D_CYAN}%-18s${NC} %s\n" "help" "Show this help screen"
+  printf "    ${D_CYAN}%-18s${NC} %s\n" "ia [sessions,routes,install]" "AI agent manager"
+  printf "    ${D_CYAN}%-18s${NC} %s\n" "init [next,react,nest,express,python,go,rust]" "Scaffold projects"
+  printf "    ${D_CYAN}%-18s${NC} %s\n" "install <module> [--tool...]" "Install modules and specific tools"
+  printf "    ${D_CYAN}%-18s${NC} %s\n" "list [module]" "List available tools in a module"
+  printf "    ${D_CYAN}%-18s${NC} %s\n" "open [module]" "Open docs in browser for a module"
+  printf "    ${D_CYAN}%-18s${NC} %s\n" "pg [start,stop,restart,status,init,create,drop,backup,restore,schedule,list,shell]" "PostgreSQL manager"
+  printf "    ${D_CYAN}%-18s${NC} %s\n" "plugin [install,update,list,search,remove,create]" "Plugin manager"
+  printf "    ${D_CYAN}%-18s${NC} %s\n" "reinstall <module>" "Uninstall + install a module"
+  printf "    ${D_CYAN}%-18s${NC} %s\n" "restore [--list,--cloud,<file>]" "Restore Termux from a backup"
+  printf "    ${D_CYAN}%-18s${NC} %s\n" "robin [start,stop,status,config,doctor,update,purge-data]" "Dark Web OSINT tool (Tor + LLM)"
+  printf "    ${D_CYAN}%-18s${NC} %s\n" "search <query>" "Search across all tools and memories"
+  printf "    ${D_CYAN}%-18s${NC} %s\n" "show <module> [--tool]" "Show README/docs for a tool"
+  printf "    ${D_CYAN}%-18s${NC} %s\n" "start [editor,robin]" "Start services (code-server, etc.)"
+  printf "    ${D_CYAN}%-18s${NC} %s\n" "status" "Quick system overview"
+  printf "    ${D_CYAN}%-18s${NC} %s\n" "supabase [doctor,types,migrate,link,remote,remote-status,install,uninstall]" "Supabase CLI (types, migrate, functions, secrets)"
+  printf "    ${D_CYAN}%-18s${NC} %s\n" "uninstall <module>" "Remove installed modules"
+  printf "    ${D_CYAN}%-18s${NC} %s\n" "update [module]" "Update modules or framework"
+  printf "    ${D_CYAN}%-18s${NC} %s\n" "upgrade" "Upgrade Karnel framework itself"
+  printf "    ${D_CYAN}%-18s${NC} %s\n" "version" "Show current version"
+  printf "    ${D_CYAN}%-18s${NC} %s\n" "voice [kilo,opencode,codex,mimocode,openclaude,pi,crush,kiro]" "Speech-to-agent via microphone"
   echo
   separator_section "Quick Start"
   echo
@@ -101,29 +104,38 @@ karnel_help() {
   list_item "Run: ${D_CYAN}karnel install <module>${NC} to install modules"
   list_item "Run: ${D_CYAN}karnel backup${NC} to save all configs"
   list_item "Run: ${D_CYAN}karnel restore${NC} to restore"
+  list_item "Run: ${D_CYAN}karnel brain init${NC} to start your second brain"
   echo
-  separator_section "Module Targets"
+  separator_section "Install / Update / Reinstall / Uninstall Targets"
   echo
-  log_info "Install, update, reinstall, uninstall, list, show or open:"
+  log_info "Use with: karnel install|update|reinstall|uninstall <target> [--tool...]"
   echo
-  printf "    ${D_GREEN}%-10s${NC} %s\n" "ai" "OpenCode, Gentle AI, Claude Code, etc."
-  printf "    ${D_GREEN}%-10s${NC} %s\n" "auto" "Automation Tools (n8n)"
-  printf "    ${D_GREEN}%-10s${NC} %s\n" "db" "PostgreSQL, MariaDB, SQLite, MongoDB"
+  printf "    ${D_GREEN}%-10s${NC} %s\n" "ai" "31 AI tools (OpenCode, Claude, Ollama, Copilot-Termux, etc.)"
+  printf "    ${D_GREEN}%-10s${NC} %s\n" "auto" "Automation (n8n)"
+  printf "    ${D_GREEN}%-10s${NC} %s\n" "db" "PostgreSQL, MariaDB, SQLite, MongoDB, Redis"
   printf "    ${D_GREEN}%-10s${NC} %s\n" "deploy" "Vercel, Railway, Netlify, Supabase CLIs"
-  printf "    ${D_GREEN}%-10s${NC} %s\n" "dev" "GitHub CLI, wget, curl, fzf, jq, etc."
-  printf "    ${D_GREEN}%-10s${NC} %s\n" "utils" "File Converter, Notes, QR Code, etc."
-  printf "    ${D_GREEN}%-10s${NC} %s\n" "editor" "code-server (VS Code in browser)"
-  printf "    ${D_GREEN}%-10s${NC} %s\n" "games" "Buzz, CTF God, Detective, Tamagotchi, etc."
-  printf "    ${D_GREEN}%-10s${NC} %s\n" "lang" "Node, Python, Perl, PHP, Rust, C/C++, Go"
-  printf "    ${D_GREEN}%-10s${NC} %s\n" "npm" "Node.js global npm packages"
-  printf "    ${D_GREEN}%-10s${NC} %s\n" "osint" "OSINT Tools (Robin — Dark Web + LLM)"
-  printf "    ${D_GREEN}%-10s${NC} %s\n" "network" "Network tools (Dark Web, DedSec Network)"
-  printf "    ${D_GREEN}%-10s${NC} %s\n" "plugin" "Plugin manager — install plugins from GitHub"
+  printf "    ${D_GREEN}%-10s${NC} %s\n" "dev" "gh, wget, curl, fzf, bat, lsd, proot, tmux, openssh, cloudflared, jq, tree, imagemagick, shfmt, make, udocker, snyk, translate, html2text, bc, ncurses, tmate"
+  printf "    ${D_GREEN}%-10s${NC} %s\n" "utils" "Fconv, Filecheck, Websites, Notes, Treex, Passman, Applaunch, Splash, Httptmux, Zork, QR Code"
+  printf "    ${D_GREEN}%-10s${NC} %s\n" "editor" "code-server, neovim, nvchad"
+  printf "    ${D_GREEN}%-10s${NC} %s\n" "games" "Buzz, CTF God, Detective, Pet Friends, Tamagotchi, Arcade"
+  printf "    ${D_GREEN}%-10s${NC} %s\n" "lang" "Bun, Node.js, Python, Perl, PHP, Rust, Clang, Go"
+  printf "    ${D_GREEN}%-10s${NC} %s\n" "npm" "typescript, nestjs, prettier, live-server, localtunnel, vercel, markserv, psqlformat, ncu, ngrok, turbopack"
+  printf "    ${D_GREEN}%-10s${NC} %s\n" "network" "Dark Web OSINT, DedSec Network"
+  printf "    ${D_GREEN}%-10s${NC} %s\n" "osint" "Robin — Dark Web + LLM OSINT"
   printf "    ${D_GREEN}%-10s${NC} %s\n" "security" "Nmap, Hydra, Metasploit, SQLMap, Gobuster, etc."
-  printf "    ${D_GREEN}%-10s${NC} %s\n" "shell" "ZSH + Oh My Zsh + 10 plugins"
-  printf "    ${D_GREEN}%-10s${NC} %s\n" "ui" "Font, Cursor, Extra-keys, Banner"
+  printf "    ${D_GREEN}%-10s${NC} %s\n" "shell" "ZSH + Oh My Zsh + 10 plugins (autosuggest, syntax-highlight, etc.)"
+  printf "    ${D_GREEN}%-10s${NC} %s\n" "ui" "Font (Meslo Nerd), Cursor (green), Extra-keys, Banner"
   printf "    ${D_GREEN}%-10s${NC} %s\n" "voice" "Speech-to-agent via microphone"
-
+  printf "    ${D_GREEN}%-10s${NC} %s\n" "plugin" "Plugin manager — install plugins from GitHub"
+  printf "    ${D_GREEN}%-10s${NC} %s\n" "supabase" "Supabase CLI (via deploy module)"
+  echo
+  separator_section "List / Show / Open"
+  echo
+  log_info "Browse available tools:"
+  echo
+  list_item "${D_CYAN}karnel list <module>${NC} — List all tools in a module"
+  list_item "${D_CYAN}karnel show <module> [--tool]${NC} — Show tool documentation"
+  list_item "${D_CYAN}karnel open <module>${NC} — Open docs in browser"
   echo
   separator_section "Help"
   echo
@@ -465,11 +477,11 @@ _tui_plugin_menu() {
   while true; do
     local sub_choice
     sub_choice=$(_dialog_menu "Plugin Manager" "Select an operation:" \
-      "install" "Install plugin from GitHub" \
-      "search" "Search available plugins" \
-      "list" "List installed plugins" \
-      "update" "Update approved plugin" \
-      "remove" "Remove installed plugin" \
+       "install" "Install plugin from GitHub" \
+       "search" "Search available plugins" \
+       "list" "List installed plugins" \
+       "update" "Update approved plugin" \
+       "remove" "Remove installed plugin" \
       "create" "Scaffold new plugin" \
       "back" "Back to Main Menu")
     local es=$?

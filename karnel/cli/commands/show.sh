@@ -33,7 +33,10 @@ show_main() {
 	local tool=""
 
 	for arg in "$@"; do
-		if [[ "$arg" == --* ]]; then
+		if [[ "$arg" == "--help" || "$arg" == "-h" ]]; then
+			show_main
+			return
+		elif [[ "$arg" == --* ]]; then
 			tool="${arg#--}"
 		elif [[ -z "$module" ]]; then
 			module="$arg"

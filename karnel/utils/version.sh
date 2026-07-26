@@ -3,6 +3,11 @@
 import "@/utils/log"
 import "@/utils/colors"
 
+if ! declare -f import >/dev/null 2>&1; then
+  echo "karnel/version.sh: bootstrap not loaded" >&2
+  return 1
+fi
+
 _parse_version() {
   local output="$1"
   local ver
@@ -78,7 +83,12 @@ _spin_capture() {
 _get_installed_npm_version() {
   local pkg="$1"
   local display="${2:-$pkg}"
-  _spin_capture "Detecting $display version" bash -c "npm ls -g '$pkg' --depth=0 2>/dev/null | grep '$pkg@' | sed 's/.*@//'"
+  _spin_capture "Detecting $display version" _capture_npm_version "$pkg"
+}
+
+_capture_npm_version() {
+  local pkg="$1"
+  npm ls -g "$pkg" --depth=0 2>/dev/null | grep "$pkg@" | sed 's/.*@//'
 }
 
 _get_remote_npm_version() {
@@ -87,7 +97,12 @@ _get_remote_npm_version() {
 
 _get_remote_pip_version() {
   local pkg="$1"
-  _spin_capture "Checking PyPI" bash -c "pip index versions '$pkg' 2>/dev/null | head -1 | awk '{print \$2}' | tr -d '()'"
+  _spin_capture "Checking PyPI" _capture_pip_version "$pkg"
+}
+
+_capture_pip_version() {
+  local pkg="$1"
+  pip index versions "$pkg" 2>/dev/null | head -1 | awk '{print $2}' | tr -d '()'
 }
 
 _get_remote_github_version() {
@@ -121,8 +136,13 @@ _get_installed_git_version() {
     return 1
   fi
   local raw
-  raw=$(_spin_capture "Detecting $display version" bash -c "cd '$dir' 2>/dev/null && git fetch --tags --depth=1 2>/dev/null; cd '$dir' 2>/dev/null && git tag -l 2>/dev/null | sort -V | tail -1" 2>/dev/null)
+  raw=$(_spin_capture "Detecting $display version" _capture_git_version "$dir" 2>/dev/null)
   _parse_version "$raw"
+}
+
+_capture_git_version() {
+  local dir="$1"
+  (cd "$dir" 2>/dev/null && git fetch --tags --depth=1 2>/dev/null; cd "$dir" 2>/dev/null && git tag -l 2>/dev/null | sort -V | tail -1)
 }
 
 _get_remote_pkg_version() {
@@ -138,10 +158,6 @@ _compare_versions() {
     return 2
   fi
 
-  if [ "$v1" = "$v2" ]; then
-    return 0
-  fi
-
   local strip_v1="${v1#v}"
   local strip_v2="${v2#v}"
 
@@ -149,7 +165,9 @@ _compare_versions() {
     return 0
   fi
 
-  return 1
+  local highest
+  highest=$(printf '%s\n%s\n' "$strip_v1" "$strip_v2" | sort -V | tail -1)
+  [ "$highest" = "$strip_v1" ]
 }
 
 _check_update_needed() {

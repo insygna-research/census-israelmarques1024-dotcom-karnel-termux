@@ -1235,6 +1235,10 @@ init_main() {
 	local template="$1"
 
 	case "$template" in
+	--help|-h)
+		init_help
+		return
+		;;
 	next | nextjs) configure_next ;;
 	react | vite) configure_react ;;
 	nest | nestjs) configure_nest ;;

@@ -131,7 +131,7 @@ supabase_doctor() {
   fi
 
   # Check for linked project
-  if supabase status 2>/dev/null | grep -qi "linked\|link"; then
+  if supabase_safe status 2>/dev/null | grep -qi "linked\|link"; then
     log_success "Project is linked to Supabase"
   else
     log_info "No linked project in current directory"
@@ -155,10 +155,32 @@ supabase_types() {
   log_info "Usage: supabase gen types typescript --linked > types/supabase.ts"
   echo
   if [[ -f "supabase/config.toml" ]]; then
-    supabase gen types typescript --linked 2>/dev/null
+    supabase_safe gen types typescript --linked 2>/dev/null
   else
     log_warn "No linked project found"
     log_info "Run ${D_CYAN}supabase link${NC} first or check directory"
+  fi
+}
+
+supabase_safe() {
+  if [[ -n "${ANDROID_ROOT:-}" ]]; then
+    local out rc
+    out=$(supabase "$@" 2>&1)
+    rc=$?
+    if echo "$out" | grep -q "SIGSYS"; then
+      log_warn "Supabase binary crashed (SIGSYS — incompatible syscall on Android)"
+      echo
+      log_info "Solutions:"
+      list_item "Run inside PRoot Debian: ${D_CYAN}pkg install proot-distro && proot-distro install debian${NC}"
+      list_item "Then: ${D_CYAN}proot-distro login debian -- supabase $*${NC}"
+      list_item "Or use a Linux VPS/Codespaces for supabase commands"
+      echo
+      return 1
+    fi
+    echo "$out"
+    return $rc
+  else
+    supabase "$@"
   fi
 }
 
@@ -167,7 +189,7 @@ supabase_migrate() {
     log_error "Supabase CLI not installed — run ${D_CYAN}karnel supabase install${NC}"
     return 1
   fi
-  supabase db "$@"
+  supabase_safe db "$@"
 }
 
 supabase_remote() {
@@ -197,7 +219,7 @@ supabase_remote_status() {
     log_error "Supabase CLI not installed"
     return 1
   fi
-  supabase status 2>/dev/null || log_warn "Unable to check Supabase status"
+  supabase_safe status 2>/dev/null || log_warn "Unable to check Supabase status"
 }
 
 supabase_link() {
@@ -205,5 +227,5 @@ supabase_link() {
     log_error "Supabase CLI not installed — run ${D_CYAN}karnel supabase install${NC}"
     return 1
   fi
-  supabase link "$@"
+  supabase_safe link "$@"
 }

@@ -265,8 +265,9 @@ _update_try_curl() {
   command -v curl &>/dev/null || return 1
   log_info "Trying curl reinstall..."
   local tmp_install
-  tmp_install=$(mktemp)
+  tmp_install=$(mktemp "${TMPDIR:-/tmp}/karnel.XXXXXX")
   if curl -fsSL "https://raw.githubusercontent.com/israelmarques1024-dotcom/karnel-termux/main/install.sh" -o "$tmp_install" 2>/dev/null; then
+    head -5 "$tmp_install" | grep -qi "karnel" || { rm -f "$tmp_install"; log_error "Downloaded file is not a valid Karnel installer"; return 1; }
     bash "$tmp_install" 2>/dev/null && { rm -f "$tmp_install"; log_success "Updated via curl"; return 0; }
   fi
   rm -f "$tmp_install"

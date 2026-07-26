@@ -4,6 +4,11 @@ set -euo pipefail
 failures=0
 checked=0
 
+if command -v git &>/dev/null && git rev-parse --git-dir &>/dev/null 2>&1; then
+  file_list=$(git ls-files -co --exclude-standard)
+else
+  file_list=$(find . -type f \( -name '*.sh' -o -name '*.bash' -o -name '*.zsh' \) ! -path './node_modules/*' ! -path './.git/*')
+fi
 while IFS= read -r file; do
   [[ -f "$file" ]] || continue
   first_line=""
@@ -19,13 +24,13 @@ while IFS= read -r file; do
       ;;
     *.zsh:*|*:'#!/usr/bin/env zsh'*|*:'#!/bin/zsh'*)
       ((checked += 1))
-      if ! zsh -n "$file"; then
+      if command -v zsh &>/dev/null && ! zsh -n "$file"; then
         printf 'Zsh syntax failed: %s\n' "$file" >&2
         ((failures += 1))
       fi
       ;;
   esac
-done < <(git ls-files -co --exclude-standard)
+done <<< "$file_list"
 
 printf 'Syntax: %d script(s) checked, %d failure(s)\n' "$checked" "$failures"
 (( failures == 0 ))

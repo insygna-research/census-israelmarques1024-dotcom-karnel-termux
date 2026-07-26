@@ -12,9 +12,9 @@ declare -A __KARNEL_IMPORTED
 # Always use plain assignments (VAR=val) or `declare -g` for globals in sourced files.
 import() {
 	local base="${KARNEL_PATH}"
-	local resolved="${1//@/$base}.sh"
+	local resolved="${1/@/$base}.sh"
 	local canonical
-	canonical="$(realpath "$resolved" 2>/dev/null || echo "$resolved")"
+	canonical="$(realpath "$resolved" 2>/dev/null || readlink -f "$resolved" 2>/dev/null || echo "$resolved")"
 
 	if [[ "$canonical" != "$base"/* ]]; then
 		echo "karnel: import error: path traversal denied: $1" >&2

@@ -5,7 +5,7 @@ _karnel_completions() {
   _init_completion || return
 
   local commands="backup brain cleanup doctor env help ia init install list open pg plugin reinstall restore robin search show start status uninstall update upgrade version voice"
-  local modules="ai auto db deploy dev editor games lang npm osint plugin shell ui voice"
+  local modules="ai auto db deploy dev editor games lang network npm osint plugin security shell ui utils voice"
 
   if [[ $cword -eq 1 ]]; then
     COMPREPLY=($(compgen -W "$commands" -- "$cur"))
