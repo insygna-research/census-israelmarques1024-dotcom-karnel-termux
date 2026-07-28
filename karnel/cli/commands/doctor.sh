@@ -296,7 +296,7 @@ doctor_termux() {
     if (( cache_files > 500 )); then
       log_warn "APT lists cache is large: $cache_size ($cache_files files)"
       ((warnings++))
-      fix_commands+=("rm -rf $apt_cache_dir/* && pkg update -y")
+      [[ -n "$apt_cache_dir" ]] && fix_commands+=("rm -rf ${apt_cache_dir:?}/* && pkg update -y")
       fix_descriptions+=("Reset APT lists cache (fixes Hash Sum mismatch)")
       fix_callbacks+=("_fix_apt_cache")
     else

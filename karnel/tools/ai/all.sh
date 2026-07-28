@@ -60,6 +60,11 @@ AI_TOOLS_REGISTRY=(
   "openspec:OpenSpec SDD Framework:openspec"
   "copilot-termux:Copilot-Termux:copilot"
   "qoder:Qoder:qodercli"
+  "ampcode:AMP Code CLI:amp"
+  "cursor-cli:Cursor CLI:cursor,cursor-agent"
+  "oh-my-pi:Oh-My-Pi:omp"
+  "goose:Goose CLI:goose"
+  "droid:Factory Droid:droid"
 )
 
 # ---- IMPORTAR TODOS OS SCRIPTS INDIVIDUAIS ----

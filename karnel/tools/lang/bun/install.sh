@@ -148,7 +148,7 @@ _compile_bun_helper_impl() {
 		return 1
 	fi
 	chmod +x "$PREFIX/lib/bun-shim.so"
-	local wrapper_tmp="$TMPDIR/bun_wrapper_$$.c"
+	local wrapper_tmp="${TMPDIR:-/tmp}/bun_wrapper_$$.c"
 	sed "s|__BUN_REAL__|$BUN_DATA_DIR/bun.real|g" "$wrapper_src" >"$wrapper_tmp"
 	if ! $CC -O2 -o "$PREFIX/bin/bun" "$wrapper_tmp" &>>"$LOG_FILE"; then
 		rm -f "$wrapper_tmp"

@@ -826,7 +826,7 @@ _install_specific_tools() {
     _batch_tool_action "security" "install" "${tools[@]}"
     ;;
   supabase)
-    import "@/tools/supabase/all"
+    import "@/tools/deploy/supabase/install"
     install_supabase
     case $? in 0) log_success "Supabase CLI installed";; 2) log_info "Supabase CLI already installed";; 1) log_error "Failed to install Supabase CLI";; esac
     ;;

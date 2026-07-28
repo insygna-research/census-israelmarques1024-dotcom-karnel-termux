@@ -16,7 +16,7 @@ import() {
 	local canonical
 	canonical="$(realpath "$resolved" 2>/dev/null || readlink -f "$resolved" 2>/dev/null || echo "$resolved")"
 
-	if [[ "$canonical" != "$base"/* ]]; then
+	if [[ "$canonical" != "$base"/* ]] || [[ "$canonical" == *".."* ]]; then
 		echo "karnel: import error: path traversal denied: $1" >&2
 		return 1
 	fi

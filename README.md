@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/israelmarques1024-dotcom/karnel-termux">
-    <img src="https://img.shields.io/badge/version-4.12.0-0078D4?style=for-the-badge" alt="Version">
+    <img src="https://img.shields.io/badge/version-4.13.0-0078D4?style=for-the-badge" alt="Version">
   </a>
   <a href="https://www.npmjs.com/package/karnel-termux">
     <img src="https://img.shields.io/npm/v/karnel-termux?style=for-the-badge&logo=npm&color=cb3837" alt="npm">
@@ -33,7 +33,7 @@
 
 Created by **Israel Marques**.
 
-- **32 AI agents** for coding — Claude, Gemini, OpenCode, Qoder, Ollama, Cline, OmniRoute and more
+- **37 AI agents** for coding — Claude, Gemini, OpenCode, Qoder, Ollama, Goose, Factory Droid, Cline, OmniRoute and more
 - **8 languages** — Node.js, Python, Go, Rust, C/C++, PHP, Perl, Bun
 - **5 databases** — PostgreSQL, MariaDB, SQLite, MongoDB, Redis
 - **22 dev tools** — gh, curl, fzf, bat, lsd, jq, tmux, openssh, snyk and more
@@ -41,7 +41,7 @@ Created by **Israel Marques**.
 - **2 network tools** — dark, dedsec-network
 - **3 deploy CLIs** — Vercel, Railway, Netlify
 - **Responsible OSINT** — Robin v2.8 through Tor with a loopback-only web UI
-- **Professional editor** — code-server (VS Code in browser)
+- **3 editors** — code-server (VS Code in browser), Neovim, NvChad
 - **Second brain** — Memory system with AI search and idea graph
 - **Voice commands** — Speak to your AI agents
 - **Plugin system** — Discover reviewed extensions: `karnel plugin search`
@@ -114,7 +114,7 @@ karnel
 |--------|-------------|--------------|
 | `lang` | Node.js, Python, Go, Rust, C/C++, PHP, Perl, Bun | `karnel install lang` |
 | `db` | PostgreSQL, MariaDB, SQLite, MongoDB, Redis | `karnel install db` |
-| `ai` | 32 AI agents for coding | `karnel install ai` |
+| `ai` | 37 AI agents for coding | `karnel install ai` |
 | `editor` | code-server (VS Code in browser) | `karnel install editor` |
 | `dev` | gh, curl, fzf, bat, lsd, jq and more | `karnel install dev` |
 | `npm` | TypeScript, NestJS CLI, Prettier and more | `karnel install npm` |
@@ -212,7 +212,7 @@ See the bundled reference with `karnel show osint --robin`.
 
 ---
 
-## AI Agents (32)
+## AI Agents (37)
 
 ```bash
 karnel install ai                             # Install all
@@ -256,7 +256,12 @@ karnel install ai --opencode --ollama         # Install specific agents
 | **Context7** | `--ctx7` | Documentation for AI assistants |
 | **OpenSpec** | `--openspec` | Spec-Driven Development |
 | **Copilot-Termux** | `--copilot-termux` | GitHub Copilot CLI adapted for Termux |
-
+| **AMP Code CLI** | `--ampcode` | AI coding agent by Sourcegraph (glibc) |
+| **Cursor CLI** | `--cursor-cli` | Official Cursor AI agent adapted for Termux (glibc) |
+| **Oh-My-Pi** | `--oh-my-pi` | Enhanced Pi agent with native Rust addons |
+| **Goose CLI** | `--goose` | AI agent framework by Block (native Termux musl) |
+| **Factory Droid** | `--droid` | Enterprise AI agent (via proot-distro Ubuntu) |
+ 
 </details>
 
 ---
@@ -487,7 +492,7 @@ karnel/
 │   │   └── karnel.sh    # Main CLI (with TUI)
 │   ├── modules/       # Module orchestrators
 │   ├── tools/         # Tool installers
-│   │   ├── ai/        # 32 AI agents
+│   │   ├── ai/        # 37 AI agents
 │   │   ├── lang/      # 8 languages
 │   │   ├── db/        # 5 databases
 │   │   ├── dev/       # 22 dev tools

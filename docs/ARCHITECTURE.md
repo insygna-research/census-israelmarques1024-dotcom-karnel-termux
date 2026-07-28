@@ -19,7 +19,7 @@ karnel-termux/
 │   │       ├── voice.sh
 │   │       ├── init.sh
 │   │       ├── deploy.sh
-│   │       ├── ... (25 files)
+│   │   ├── ... (27 .sh files + doctor/ subdir)
 │   ├── modules/                # Module orchestrators
 │   │       ├── ai.sh           # AI agent installer
 │   │       ├── lang.sh         # Language installer
@@ -27,8 +27,8 @@ karnel-termux/
 │   │       ├── dev.sh          # Dev tools installer
 │   │       └── ...
 │   ├── tools/                  # Individual tool installers
-│   │   ├── ai/                 # 31 AI agents
-│   │   ├── lang/               # 7 languages
+│   │   ├── ai/                 # 37 AI agents
+│   │   ├── lang/               # 8 languages
 │   │   ├── db/                 # 5 databases
 │   │   ├── dev/                # 22 dev tools
 │   │   ├── editor/             # Code editor
@@ -45,7 +45,8 @@ karnel-termux/
 │       ├── banner.sh           # ASCII banners
 │       ├── colors.sh           # ANSI color definitions
 │       ├── log.sh              # Logging (info, warn, error, success, box)
-│       └── env.sh              # Environment variable utilities
+│       ├── env.sh              # Environment configuration (XDG paths, UI opts)
+│       └── version.sh          # Version comparison utilities
 ├── install.sh                  # Bootstrap installer
 ├── package.json                # npm publishing
 ├── scripts/npm-install.js      # postinstall hook
@@ -61,13 +62,18 @@ Karnel uses a custom `import()` function instead of `source`:
 ```bash
 import() {
   local base="${KARNEL_PATH}"
-  local path="${1//@/$base}.sh"
-  if [[ -f "$path" ]]; then
-    source "$path"
-  else
-    echo "Import failed: $path" >&2
-    exit 1
+  local resolved="${1/@/$base}.sh"
+  local canonical
+  canonical="$(realpath "$resolved" 2>/dev/null || readlink -f "$resolved" 2>/dev/null || echo "$resolved")"
+  if [[ "$canonical" != "$base"/* ]] || [[ "$canonical" == *".."* ]]; then
+    echo "karnel: import error: path traversal denied: $1" >&2
+    return 1
   fi
+  if [[ ! -f "$canonical" ]]; then
+    echo "karnel: import error: $canonical not found" >&2
+    return 1
+  fi
+  source "$canonical"
 }
 
 # Usage:

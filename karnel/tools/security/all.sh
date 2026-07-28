@@ -40,14 +40,18 @@ done
 _batch_security() {
   local action="$1"
   local action_past="$2"
-  local -n count_var="$3"
+  if [[ "$3" != "_unused" ]]; then
+    local -n count_var="$3"
+  else
+    local count_var
+  fi
   for tool in "${SECURITY_TOOLS[@]}"; do
     func_name="${action}_${tool//-/_}"
     loading "${action_past^}ing ${tool}" "$func_name"
     case $? in
-      0) ((count_var++)) ;;
-      2) ((skipped_count++)) ;;
-      1) ((failed_count++)) ;;
+      0) ((count_var++)) 2>/dev/null || true;;
+      2) ((skipped_count++));;
+      *) ((failed_count++));;
     esac
   done
 }

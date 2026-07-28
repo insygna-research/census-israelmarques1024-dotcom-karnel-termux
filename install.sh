@@ -221,7 +221,7 @@ clone_repo() {
 	# Install shell completions
 	if [ -f "$KARNEL_REPO/scripts/completion.bash" ]; then
 		mkdir -p "$PREFIX/share/bash-completion/completions" 2>/dev/null || true
-		cp "$KARNEL_REPO/scripts/completion.bash" "$PREFIX/share/bash-completion/completions/karnel" 2>/dev/null || log_warn "Failed to install bash completion"
+		cp "$KARNEL_REPO/scripts/completion.bash" "$PREFIX/share/bash-completion/completions/karnel" 2>/dev/null || log_info "Failed to install bash completion (non-fatal)"
 	fi
 	if [ -f "$KARNEL_REPO/scripts/completion.zsh" ]; then
 		cp "$KARNEL_REPO/scripts/completion.zsh" "$PREFIX/share/zsh/site-functions/_karnel" 2>/dev/null || true

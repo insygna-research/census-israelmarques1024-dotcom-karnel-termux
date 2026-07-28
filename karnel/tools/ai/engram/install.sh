@@ -13,7 +13,7 @@ _engram_dependencies_impl() {
   declare -A DEPS=(
     ["golang"]="go"
     ["git"]="git"
-    ["sqlite"]="sqlite"
+    ["sqlite"]="sqlite3"
   )
 
   local pkg_name bin_name
@@ -48,7 +48,7 @@ _build_engram() {
 }
 
 _build_engram_impl() {
-  if ! go build -C "$KARNEL_DATA/engram/cmd/engram" -o $PREFIX/bin/engram &>>"$LOG_FILE"; then
+  if ! go build -C "$KARNEL_DATA/engram/cmd/engram" -o "$PREFIX/bin/engram" &>>"$LOG_FILE"; then
     log_error "Failed to build engram"
     return 1
   fi

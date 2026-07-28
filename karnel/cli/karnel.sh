@@ -110,7 +110,7 @@ karnel_help() {
   echo
   log_info "Use with: karnel install|update|reinstall|uninstall <target> [--tool...]"
   echo
-  printf "    ${D_GREEN}%-10s${NC} %s\n" "ai" "31 AI tools (OpenCode, Claude, Ollama, Copilot-Termux, etc.)"
+  printf "    ${D_GREEN}%-10s${NC} %s\n" "ai" "37 AI tools (OpenCode, Claude, Ollama, Copilot-Termux, Goose, etc.)"
   printf "    ${D_GREEN}%-10s${NC} %s\n" "auto" "Automation (n8n)"
   printf "    ${D_GREEN}%-10s${NC} %s\n" "db" "PostgreSQL, MariaDB, SQLite, MongoDB, Redis"
   printf "    ${D_GREEN}%-10s${NC} %s\n" "deploy" "Vercel, Railway, Netlify, Supabase CLIs"

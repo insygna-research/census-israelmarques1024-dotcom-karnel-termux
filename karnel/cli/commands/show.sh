@@ -84,8 +84,13 @@ show_main() {
   local readme_path
   readme_path="$(realpath "$KARNEL_PATH/tools/$module/$tool/README.md" 2>/dev/null)"
 
-  if [[ -z "$readme_path" || "$readme_path" != "$KARNEL_PATH/tools/"* ]]; then
+  if [[ -z "$readme_path" ]]; then
     log_error "No documentation found for $module/$tool"
+    return 1
+  fi
+
+  if [[ "$readme_path" != "$KARNEL_PATH/tools/"* ]] || [[ "$readme_path" == *".."* ]]; then
+    log_error "Access denied: path traversal detected"
     return 1
   fi
 

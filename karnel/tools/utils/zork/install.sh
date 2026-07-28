@@ -3,7 +3,7 @@
 import "@/utils/log"
 import "@/utils/version"
 
-LOG_FILE="$KARNEL_CACHE/install_dev.log"
+LOG_FILE="$KARNEL_CACHE/install_zork.log"
 ZORK_DATA_DIR="$HOME/.local/share/karnel-data/zork"
 
 ZORK_URLS=(

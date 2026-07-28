@@ -10,3 +10,5 @@ __pycache__/
 .ruff_cache/
 .venv/
 .engram/
+.mimocode/
+opencode.jsonc

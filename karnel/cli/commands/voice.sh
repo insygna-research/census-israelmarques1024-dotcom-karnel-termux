@@ -125,6 +125,7 @@ voice_main() {
 
   if command -v termux-speech-to-text &>/dev/null; then
     if [[ -n "$lang" ]]; then
+      [[ "$lang" =~ ^[a-zA-Z_-]+$ ]] || { log_error "Invalid language code: $lang"; return 1; }
       raw="$(termux-speech-to-text -l "$lang" 2>/dev/null)"
     else
       raw="$(termux-speech-to-text 2>/dev/null)"

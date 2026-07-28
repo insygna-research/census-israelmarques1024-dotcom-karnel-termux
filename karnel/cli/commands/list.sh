@@ -198,6 +198,11 @@ _list_ai() {
   table_row "Context7 Docs" "--ctx7" "ctx7" "$(_check_cmd "ctx7")"
   table_row "OpenSpec SDD" "--openspec" "openspec" "$(_check_cmd "openspec")"
   table_row "Qoder" "--qoder" "qodercli" "$(_check_cmd "qodercli")"
+  table_row "AMP Code CLI" "--ampcode" "amp" "$(_check_cmd "amp")"
+  table_row "Cursor CLI" "--cursor-cli" "cursor" "$(_check_cmd "cursor")"
+  table_row "Oh-My-Pi" "--oh-my-pi" "omp" "$(_check_cmd "omp")"
+  table_row "Goose CLI" "--goose" "goose" "$(_check_cmd "goose")"
+  table_row "Factory Droid" "--droid" "droid" "$(_check_cmd "droid")"
   table_row "Copilot-Termux" "--copilot-termux" "copilot" "$(_check_cmd "copilot")"
   table_end
 

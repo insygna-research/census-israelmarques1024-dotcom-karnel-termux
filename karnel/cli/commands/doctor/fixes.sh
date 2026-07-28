@@ -19,9 +19,10 @@ _fix_mkdir() {
 
 _fix_pkg_install() {
   local pkg_to_install=""
+  local fix_idx="${3:-$i}"
   case "$1" in
     pkg) pkg_to_install="$2" ;;
-    *) pkg_to_install="${fix_commands[$i]:-}" ;;
+    *) pkg_to_install="${fix_commands[$fix_idx]:-}" ;;
   esac
   local pkg_name=""
   if [[ "$pkg_to_install" =~ pkg\ install\ -y\ (.+) ]]; then
@@ -207,7 +208,11 @@ _fix_psutil() {
   mkdir -p "$tmp"
   pip download psutil==7.2.2 --no-binary :all: --no-deps -d "$tmp" 2>/dev/null || return 1
   tar xzf "$tmp/psutil-7.2.2.tar.gz" -C "$tmp"
-  sed -i 's/LINUX = sys.platform.startswith("linux")/LINUX = sys.platform.startswith(("linux", "android"))/' "$tmp/psutil-7.2.2/psutil/_common.py"
+  if grep -q 'LINUX = sys.platform.startswith("linux")' "$tmp/psutil-7.2.2/psutil/_common.py" 2>/dev/null; then
+    sed -i 's/LINUX = sys.platform.startswith("linux")/LINUX = sys.platform.startswith(("linux", "android"))/' "$tmp/psutil-7.2.2/psutil/_common.py"
+  else
+    log_warn "psutil patch target not found, skipping"
+  fi
   pip install "$tmp/psutil-7.2.2" 2>/dev/null
   local rc=$?
   rm -rf "$tmp"
@@ -230,8 +235,8 @@ _fix_npm_shebangs() {
   for f in "$PREFIX/bin/"*; do
     [[ -f "$f" ]] || continue
     local shebang
-    shebang=$(head -1 "$f" 2>/dev/null | tr -d '\0')
-    if [[ "$shebang" == "#!/usr/bin/env node" ]]; then
+		shebang=$(head -1 "$f" 2>/dev/null | tr -d '\0\r' | xargs)
+		if [[ "$shebang" == "#!/usr/bin/env node" ]]; then
       sed -i "1s|^.*$|#!$PREFIX/bin/node|" "$f" && ((fixed++))
     elif [[ "$shebang" == "#!/usr/bin/env bash" ]] || [[ "$shebang" == "#!/usr/bin/env sh" ]]; then
       sed -i "1s|^.*$|#!$PREFIX/bin/bash|" "$f" && ((fixed++))

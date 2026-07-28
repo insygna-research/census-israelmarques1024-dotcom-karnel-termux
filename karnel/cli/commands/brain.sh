@@ -54,10 +54,14 @@ _brain_title() {
 	fi
 }
 
+_brain_slug_escape() {
+	printf '%s\n' "$1" | sed 's/[\/&]/\\&/g; s/\n/\\n/g'
+}
+
 _brain_update_related() {
 	local file="$1" slug="$2"
 	local tmp
-	tmp=$(mktemp)
+	tmp=$(mktemp "${TMPDIR:-/tmp}/karnel-brain.XXXXXX")
 	local frontmatter_end
 	frontmatter_end=$(awk '/^---$/ {++n} n==2 {print NR; exit}' "$file")
 
@@ -73,8 +77,10 @@ _brain_update_related() {
 		return
 	fi
 
+	local escaped
+	escaped=$(_brain_slug_escape "$slug")
 	if grep -q "^related:" "$tmp" 2>/dev/null; then
-		sed -i "s/^related: \[\(.*\)\]/related: [\1, $slug]/" "$tmp"
+		sed -i "s/^related: \[\(.*\)\]/related: [\1, $escaped]/" "$tmp"
 	else
 		sed -i "/^---$/a related: [$slug]" "$tmp"
 	fi
@@ -85,7 +91,7 @@ _brain_update_related() {
 _brain_remove_related() {
 	local file="$1" slug="$2"
 	local tmp
-	tmp=$(mktemp)
+	tmp=$(mktemp "${TMPDIR:-/tmp}/karnel-brain.XXXXXX")
 	local frontmatter_end
 	frontmatter_end=$(awk '/^---$/ {++n} n==2 {print NR; exit}' "$file")
 
@@ -95,7 +101,9 @@ _brain_remove_related() {
 	fi
 
 	head -n $((frontmatter_end - 1)) "$file" >"$tmp"
-	sed -i "s/related: \[\(.*\)$slug\(.*\)\]/related: [\1\2]/" "$tmp"
+	local escaped
+	escaped=$(_brain_slug_escape "$slug")
+	sed -i "s/related: \[\(.*\)$escaped\(.*\)\]/related: [\1\2]/" "$tmp"
 	sed -i 's/related: \[, */related: [/; s/, *, */, /g; s/related: \[ *\]//' "$tmp"
 	tail -n +$((frontmatter_end)) "$file" >>"$tmp"
 	mv "$tmp" "$file"
@@ -1157,6 +1165,10 @@ brain_delete() {
 		_brain_remove_related "$rfile" "$file_slug"
 	done < <(rg -l "$file_slug" "$BRAIN_DIR" --glob '*.md' 2>/dev/null || true)
 
+	if [[ "$file" != "$BRAIN_DIR"/* ]]; then
+		log_error "Refusing to delete file outside brain directory"
+		return 1
+	fi
 	rm "$file"
 	log_success "Deleted: ${D_CYAN}$title${D_NC}"
 
@@ -1197,6 +1209,10 @@ brain_reset() {
 	fi
 
 	echo
+	if [[ -z "$BRAIN_DIR" ]] || [[ "$BRAIN_DIR" == "/" ]]; then
+		log_error "BRAIN_DIR is not set correctly, aborting"
+		return 1
+	fi
 	loading "Deleting local brain..." rm -rf "$BRAIN_DIR"
 	log_success "Brain destroyed"
 	list_item "Recreate with: ${D_CYAN}karnel brain init${D_NC}"

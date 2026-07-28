@@ -3,7 +3,7 @@
 import "@/utils/log"
 import "@/utils/version"
 
-LOG_FILE="$KARNEL_CACHE/install_dev.log"
+LOG_FILE="$KARNEL_CACHE/install_notes.log"
 
 install_notes() {
   local TOOL_DIR="$KARNEL_PATH/tools/utils/notes"
