@@ -370,7 +370,7 @@ _tui_list_menu() {
   local modules="ai db lang dev editor npm shell ui auto deploy games network utils osint voice plugin security"
   local choice
   choice=$(_dialog_menu "List Tools" "Select a module to list:" \
-    "ai" "AI Agents (31)" \
+    "ai" "AI Agents (37)" \
     "db" "Databases" \
     "lang" "Programming Languages" \
     "editor" "Code Editors" \
@@ -785,6 +785,12 @@ _tui_install_checklist() {
         "ctx7" "Context7 Docs" OFF
         "openspec" "OpenSpec SDD" OFF
         "copilot-termux" "Copilot-Termux" OFF
+        "qoder" "Qoder" OFF
+        "ampcode" "AMP Code CLI" OFF
+        "cursor-cli" "Cursor CLI" OFF
+        "oh-my-pi" "Oh-My-Pi" OFF
+        "goose" "Goose CLI" OFF
+        "droid" "Factory Droid" OFF
       )
       ;;
     dev)
