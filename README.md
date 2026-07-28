@@ -33,7 +33,7 @@
 
 Created by **Israel Marques**.
 
-- **32 AI agents** for coding — Claude, Gemini, OpenCode, Qoder, Ollama, Cline, karnelRoute and more
+- **32 AI agents** for coding — Claude, Gemini, OpenCode, Qoder, Ollama, Cline, OmniRoute and more
 - **8 languages** — Node.js, Python, Go, Rust, C/C++, PHP, Perl, Bun
 - **5 databases** — PostgreSQL, MariaDB, SQLite, MongoDB, Redis
 - **22 dev tools** — gh, curl, fzf, bat, lsd, jq, tmux, openssh, snyk and more
