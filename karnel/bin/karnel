@@ -23,6 +23,11 @@ source "$KARNEL_PATH/utils/bootstrap.sh"
 # cargar entorno
 import "@/utils/env"
 
+# ===== SEMVER COMPARISON =====
+_semver_gt() {
+  [[ "$(printf '%s\n%s' "$1" "$2" | sort -V | tail -1)" == "$1" ]] && [[ "$1" != "$2" ]]
+}
+
 # ===== CHECK UPDATES =====
 check_for_updates() {
   local version_file="$KARNEL_CACHE/last_version_check"
@@ -42,10 +47,16 @@ check_for_updates() {
   echo "$current_time" > "$version_file"
 
   (
-    local remote_version=$(curl -fsSL --max-time 5 "https://raw.githubusercontent.com/israelmarques1024-dotcom/karnel-termux/main/karnel/utils/env.sh" 2>/dev/null | grep "KARNEL_VERSION=" | cut -d'"' -f2)
+    local remote_version
+    remote_version=$(timeout 5 npm view karnel-termux version 2>/dev/null | tail -1)
+    if [[ -z "$remote_version" ]]; then
+      remote_version=$(curl -fsSL --max-time 5 "https://raw.githubusercontent.com/israelmarques1024-dotcom/karnel-termux/main/karnel/utils/env.sh" 2>/dev/null | grep "KARNEL_VERSION=" | cut -d'"' -f2)
+    fi
     local local_version="$KARNEL_VERSION"
-    if [[ -n "$remote_version" ]] && [[ "$remote_version" != "$local_version" ]]; then
+    if [[ -n "$remote_version" ]] && _semver_gt "$remote_version" "$local_version"; then
       echo "$remote_version" > "$KARNEL_CACHE/new_version"
+    else
+      rm -f "$KARNEL_CACHE/new_version"
     fi
   ) &>/dev/null &
 }
@@ -53,7 +64,12 @@ check_for_updates() {
 show_update_notification() {
   local new_version_file="$KARNEL_CACHE/new_version"
   if [[ -f "$new_version_file" ]]; then
-    local new_version=$(cat "$new_version_file")
+    local new_version
+    new_version=$(cat "$new_version_file")
+    if ! _semver_gt "$new_version" "$KARNEL_VERSION"; then
+      rm -f "$new_version_file"
+      return 0
+    fi
     echo
     separator_section "Update Available"
     echo

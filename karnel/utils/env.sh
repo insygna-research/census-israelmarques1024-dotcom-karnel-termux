@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 
-KARNEL_VERSION="4.12.0"
+KARNEL_VERSION=""
+if [[ -n "$KARNEL_PATH" ]] && [[ -f "$KARNEL_PATH/../package.json" ]]; then
+  KARNEL_VERSION=$(grep '"version"' "$KARNEL_PATH/../package.json" | head -1 | sed -E 's/.*"version": "([^"]+)".*/\1/')
+fi
+: "${KARNEL_VERSION:=unknown}"
 
 # -------------------------
 # Directorios del usuario

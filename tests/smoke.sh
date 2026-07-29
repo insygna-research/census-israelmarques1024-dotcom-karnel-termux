@@ -96,14 +96,14 @@ for all in karnel/tools/*/all.sh; do
 done
 $all_ok && pass
 
-# 10. Version consistency check
-echo "10) Version consistency check"
+# 10. Version from package.json
+echo "10) Version from package.json"
 PKG_VERSION=$(grep '"version"' package.json | head -1 | cut -d'"' -f4)
-ENV_VERSION=$(grep '^KARNEL_VERSION=' karnel/utils/env.sh | cut -d'"' -f2)
-if [[ "$PKG_VERSION" == "$ENV_VERSION" ]]; then
+KARNEL_PATH="$PWD/karnel" source karnel/utils/env.sh 2>/dev/null
+if [[ "$KARNEL_VERSION" == "$PKG_VERSION" ]]; then
   pass
 else
-  fail "package.json version ($PKG_VERSION) != env.sh version ($ENV_VERSION)"
+  fail "KARNEL_VERSION ($KARNEL_VERSION) != package.json ($PKG_VERSION)"
 fi
 
 # 11. Doctor modules have valid syntax
