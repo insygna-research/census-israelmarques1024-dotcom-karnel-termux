@@ -101,6 +101,9 @@ karnel update karnel              # Update the Karnel-Termux package only
 karnel update core                # Same as karnel update karnel
 ```
 
+`karnel update karnel` first downloads and runs the official installer with
+`curl`. If that fails, it tries the local Git checkout and then npm or pnpm.
+
 ---
 
 ## upgrade — Upgrade the Karnel framework
@@ -109,9 +112,9 @@ karnel update core                # Same as karnel update karnel
 karnel upgrade
 ```
 
-No arguments. Runs `git pull origin main` on the Karnel checkout, re-sources
-the environment, verifies the `karnel` symlink, runs cleanup, and shows the
-new version.
+No arguments. Uses the same curl-first framework update flow as
+`karnel update karnel`, then re-sources the environment, verifies the `karnel`
+symlink, runs cleanup, and shows the new version.
 
 ---
 

@@ -191,7 +191,8 @@ update_karnel() {
   separator
   echo
 
-  # Tries every method in order until one succeeds
+  # The official installer keeps all installation layouts consistent.
+  _update_try_curl && { _update_cleanup; return 0; }
   _update_try_git && { _update_cleanup; return 0; }
   _update_try_npm && { _update_cleanup; return 0; }
   _update_try_npm_install && { _update_cleanup; return 0; }
@@ -206,6 +207,31 @@ update_karnel() {
 
 _update_cleanup() {
   rm -f "$KARNEL_CACHE/new_version" "$KARNEL_CACHE/last_version_check"
+}
+
+_update_try_curl() {
+  command -v curl &>/dev/null || return 1
+
+  local installer
+  installer=$(mktemp "${TMPDIR:-/tmp}/karnel-install.XXXXXX") || return 1
+
+  log_info "Trying the official curl installer..."
+  if ! curl --fail --silent --show-error --location \
+    "https://raw.githubusercontent.com/israelmarques1024-dotcom/karnel-termux/main/install.sh" \
+    -o "$installer"; then
+    rm -f "$installer"
+    return 1
+  fi
+
+  if bash "$installer"; then
+    rm -f "$installer"
+    log_success "Karnel-Termux updated via curl"
+    return 0
+  fi
+
+  rm -f "$installer"
+  log_error "Curl update failed"
+  return 1
 }
 
 _update_try_git() {
@@ -265,6 +291,7 @@ _update_try_pnpm() {
 _update_show_manual() {
   log_info "Update manually with one of these:"
   echo
+  echo '  bash -c "$(curl -fsSL https://raw.githubusercontent.com/israelmarques1024-dotcom/karnel-termux/main/install.sh)"'
   echo "  npm install -g karnel-termux@latest"
   echo "  pnpm add -g karnel-termux@latest"
   echo

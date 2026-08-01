@@ -531,7 +531,7 @@ karnel/
 │   │   ├── auto/      # 1 automation tool
 │   │   ├── network/   # 2 network tools
 │   │   ├── utils/     # 11 utility tools
-│   │   ├── games/     # 7 games
+│   │   ├── games/     # 6 games
 │   │   ├── security/  # 30 security tools
 │   │   └── deploy/    # 4 deploy CLIs
 │   └── utils/         # Utilities (banner, log, env, etc.)
@@ -568,9 +568,11 @@ The framework checks for updates every 24 hours in background.
 karnel update karnel     # Update the framework
 ```
 
-`karnel update` requires a target such as `karnel`, `ai`, or `security`. The
-framework checks for a new version in the background at most once every 24 hours;
-the check can use npm or GitHub and writes state under `$KARNEL_CACHE`.
+`karnel update` requires a target such as `karnel`, `ai`, or `security`.
+`karnel update karnel` first runs the official curl installer, then falls back to
+the local Git checkout and package-manager installs if needed. The framework
+checks for a new version in the background at most once every 24 hours; the check
+can use npm or GitHub and writes state under `$KARNEL_CACHE`.
 
 ---
 

@@ -31,14 +31,16 @@ list_item() { :; }
 
 # shellcheck source=../karnel/cli/commands/update.sh
 source "$KARNEL_PATH/cli/commands/update.sh"
-_update_try_git() { return 1; }
-_update_try_npm() { return 1; }
-_update_try_npm_install() { return 1; }
-_update_try_pnpm() { return 1; }
+update_attempts=()
+_update_try_curl() { update_attempts+=(curl); return 1; }
+_update_try_git() { update_attempts+=(git); return 1; }
+_update_try_npm() { update_attempts+=(npm); return 1; }
+_update_try_npm_install() { update_attempts+=(npm-install); return 1; }
+_update_try_pnpm() { update_attempts+=(pnpm); return 1; }
 _update_show_manual() { :; }
 assert_failure "all update methods fail" update_karnel
-if declare -F _update_try_curl >/dev/null; then
-  printf 'FAIL: update still executes a curl installer fallback\n' >&2
+if [[ "${update_attempts[*]}" != "curl git npm npm-install pnpm" ]]; then
+  printf 'FAIL: update methods ran in unexpected order: %s\n' "${update_attempts[*]}" >&2
   exit 1
 fi
 ((pass += 1))

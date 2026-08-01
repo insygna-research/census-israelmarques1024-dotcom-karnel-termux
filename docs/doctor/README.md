@@ -41,7 +41,7 @@ The Termux doctor contains more than 30 diagnostic sections, including:
 - dpkg, APT sources, keyring, cache, mirrors, and system clock
 - Node.js/npm, Python/pip/venv, PostgreSQL, proot, and glibc compatibility
 - Karnel version, CLI link, shell banner, Zsh integration, and caches
-- all 31 AI registry commands
+- all 39 AI registry commands
 - shebangs, broken links, Git identity, SSH keys/server, DNS, HTTPS, and latency
 - API keys, shell history, zombie processes, storage I/O, and Termux:API
 
