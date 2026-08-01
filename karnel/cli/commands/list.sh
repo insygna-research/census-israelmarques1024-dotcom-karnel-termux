@@ -188,8 +188,8 @@ _list_ai() {
   table_row "Kimi Code" "--kimi-code" "kimi" "$(_check_cmd "kimi")"
   table_row "Command Code" "--command-code" "command-code" "$(_check_cmd "command-code")"
   table_row "Freebuff" "--freebuff" "freebuff" "$(_check_cmd "freebuff")"
-  table_row "Kilo Code CLI" "--kilocode-cli" "kilocode" "$(_check_cmd "kilocode")"
-  table_row "Kiro CLI" "--kiro" "kiro" "$(_check_cmd "kiro")"
+  table_row "Kilo Code CLI" "--kilocode-cli" "kilocode,kilo" "$(_check_cmd_any "kilocode,kilo")"
+  table_row "Kiro CLI" "--kiro" "kiro,kiro-cli" "$(_check_cmd_any "kiro,kiro-cli")"
   table_row "Crush CLI" "--crush" "crush" "$(_check_cmd "crush")"
   table_row "Cline CLI" "--cline" "cline" "$(_check_cmd "cline")"
   table_row "Odysseus" "--odysseus" "odysseus" "$(_check_cmd "odysseus")"
@@ -199,7 +199,7 @@ _list_ai() {
   table_row "OpenSpec SDD" "--openspec" "openspec" "$(_check_cmd "openspec")"
   table_row "Qoder" "--qoder" "qodercli" "$(_check_cmd "qodercli")"
   table_row "AMP Code CLI" "--ampcode" "amp" "$(_check_cmd "amp")"
-  table_row "Cursor CLI" "--cursor-cli" "cursor" "$(_check_cmd "cursor")"
+  table_row "Cursor CLI" "--cursor-cli" "cursor,cursor-agent" "$(_check_cmd_any "cursor,cursor-agent")"
   table_row "Oh-My-Pi" "--oh-my-pi" "omp" "$(_check_cmd "omp")"
   table_row "Goose CLI" "--goose" "goose" "$(_check_cmd "goose")"
   table_row "Factory Droid" "--droid" "droid" "$(_check_cmd "droid")"
@@ -465,6 +465,20 @@ _check_cmd() {
   else
     echo -e "${D_RED}not installed${NC}"
   fi
+}
+
+# Check if any of the comma-separated commands exists
+_check_cmd_any() {
+  local bin_list="$1"
+  local bin
+  IFS=',' read -ra bins <<< "$bin_list"
+  for bin in "${bins[@]}"; do
+    if command -v "$bin" &>/dev/null; then
+      echo -e "${D_GREEN}installed${NC}"
+      return 0
+    fi
+  done
+  echo -e "${D_RED}not installed${NC}"
 }
 
 # Check if package is installed via pkg
