@@ -212,26 +212,89 @@ _update_cleanup() {
 _update_try_curl() {
   command -v curl &>/dev/null || return 1
 
-  local installer
-  installer=$(mktemp "${TMPDIR:-/tmp}/karnel-install.XXXXXX") || return 1
+  local meta installer sumfile tag
+  meta=$(mktemp "${TMPDIR:-/tmp}/karnel-meta.XXXXXX") || return 1
+  installer=$(mktemp "${TMPDIR:-/tmp}/karnel-install.XXXXXX") || { rm -f "$meta"; return 1; }
+  sumfile=$(mktemp "${TMPDIR:-/tmp}/karnel-sum.XXXXXX") || { rm -f "$meta" "$installer"; return 1; }
 
   log_info "Trying the official curl installer..."
+
   if ! curl --fail --silent --show-error --location \
-    "https://raw.githubusercontent.com/israelmarques1024-dotcom/karnel-termux/main/install.sh" \
-    -o "$installer"; then
-    rm -f "$installer"
+    "https://api.github.com/repos/israelmarques1024-dotcom/karnel-termux/releases/latest" \
+    -o "$meta"; then
+    rm -f "$meta" "$installer" "$sumfile"
     return 1
   fi
 
+  tag=$(_update_latest_release_tag "$meta")
+  if [[ -z "$tag" || ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    log_error "GitHub returned an invalid release tag: ${tag:-none}"
+    rm -f "$meta" "$installer" "$sumfile"
+    return 1
+  fi
+
+  if ! curl --fail --silent --show-error --location \
+    "https://github.com/israelmarques1024-dotcom/karnel-termux/releases/download/$tag/karnel-termux-install.sh.sha256" \
+    -o "$sumfile" ||
+    ! curl --fail --silent --show-error --location \
+    "https://github.com/israelmarques1024-dotcom/karnel-termux/releases/download/$tag/karnel-termux-install.sh" \
+    -o "$installer"; then
+    rm -f "$meta" "$installer" "$sumfile"
+    return 1
+  fi
+
+  if ! _verify_sha256 "$installer" "$sumfile"; then
+    log_error "Checksum verification failed for the curl installer"
+    rm -f "$meta" "$installer" "$sumfile"
+    return 1
+  fi
+
+  rm -f "$meta" "$sumfile"
+
   if bash "$installer"; then
     rm -f "$installer"
-    log_success "Karnel-Termux updated via curl"
+    log_success "Karnel-Termux updated via curl (v$tag)"
     return 0
   fi
 
   rm -f "$installer"
   log_error "Curl update failed"
   return 1
+}
+
+_update_latest_release_tag() {
+  local meta="$1"
+  if command -v node &>/dev/null; then
+    node -e '
+      let s = "";
+      process.stdin.resume();
+      process.stdin.on("data", (d) => { s += d; });
+      process.stdin.on("end", () => {
+        try { process.stdout.write(JSON.parse(s).tag_name || ""); } catch (e) {}
+      });
+    ' < "$meta"
+    return
+  fi
+  grep -oP '"tag_name":\s*"\K[^"]+' "$meta" 2>/dev/null | head -n 1
+}
+
+_verify_sha256() {
+  local file="$1" sumfile="$2"
+  local expected actual
+  expected=$(awk 'NR == 1 { print $1 }' "$sumfile")
+  [[ -n "$expected" ]] || return 1
+  if command -v sha256sum &>/dev/null; then
+    actual=$(sha256sum "$file" | awk '{ print $1 }')
+  elif command -v node &>/dev/null; then
+    actual=$(node -e '
+      const fs = require("fs");
+      const crypto = require("crypto");
+      process.stdout.write(crypto.createHash("sha256").update(fs.readFileSync(process.argv[1])).digest("hex"));
+    ' "$file")
+  else
+    return 1
+  fi
+  [[ "$actual" == "$expected" ]]
 }
 
 _update_try_git() {

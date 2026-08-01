@@ -40,15 +40,21 @@ jobs:
         run: npm run ci
       - name: Build package artifact
         run: npm pack --ignore-scripts
+      - name: Build installer assets
+        run: |
+          cp install.sh karnel-termux-install.sh
+          sha256sum karnel-termux-install.sh > karnel-termux-install.sh.sha256
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          artifact="karnel-termux-$(node -p 'require("./package.json").version').tgz"
+          version=$(node -p 'require("./package.json").version')
+          artifact="karnel-termux-$version.tgz"
+          files=("$artifact" "karnel-termux-install.sh" "karnel-termux-install.sh.sha256")
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-            gh release upload "$RELEASE_TAG" "$artifact" --clobber
+            gh release upload "$RELEASE_TAG" "${files[@]}" --clobber
           else
-            gh release create "$RELEASE_TAG" --generate-notes "$artifact"
+            gh release create "$RELEASE_TAG" --generate-notes "${files[@]}"
           fi
       - name: Publish npm package
         run: |

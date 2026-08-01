@@ -45,6 +45,86 @@ if [[ "${update_attempts[*]}" != "curl git npm npm-install pnpm" ]]; then
 fi
 ((pass += 1))
 
+# shellcheck source=../karnel/cli/commands/update.sh
+source "$KARNEL_PATH/cli/commands/update.sh"
+
+mkdir -p "$KARNEL_CACHE"
+
+mock_installer='touch "$KARNEL_CACHE/curl-installed"'
+mock_sum=$(printf '%s\n' "$mock_installer" | sha256sum | awk '{print $1}')
+mock_tag="v4.14.0"
+mock_fail=0
+
+curl() {
+  local url="" out="" prev=""
+  for arg in "$@"; do
+    if [[ "$prev" == "-o" ]]; then
+      out="$arg"
+      prev=""
+    elif [[ "$arg" == "-o" ]]; then
+      prev="-o"
+    elif [[ "$arg" != -* ]]; then
+      url="$arg"
+    fi
+  done
+  if [[ "$mock_fail" == "1" ]]; then
+    return 1
+  fi
+  case "$url" in
+  *"/releases/latest")
+    printf '{"tag_name":"%s"}\n' "$mock_tag" > "$out"
+    ;;
+  *"/releases/download/"*"/karnel-termux-install.sh.sha256")
+    printf '%s  karnel-termux-install.sh\n' "$mock_sum" > "$out"
+    ;;
+  *"/releases/download/"*"/karnel-termux-install.sh")
+    printf '%s\n' "$mock_installer" > "$out"
+    ;;
+  *)
+    printf 'FAIL: unexpected curl URL: %s\n' "$url" >&2
+    return 1
+    ;;
+  esac
+}
+export -f curl
+
+rm -f "$KARNEL_CACHE/curl-installed"
+if ! _update_try_curl >/dev/null 2>&1; then
+  printf 'FAIL: curl update did not succeed\n' >&2
+  exit 1
+fi
+test -f "$KARNEL_CACHE/curl-installed"
+((pass += 1))
+
+rm -f "$KARNEL_CACHE/curl-installed"
+mock_sum="0000000000000000000000000000000000000000000000000000000000000000"
+if _update_try_curl >/dev/null 2>&1; then
+  printf 'FAIL: checksum mismatch was not rejected\n' >&2
+  exit 1
+fi
+test ! -f "$KARNEL_CACHE/curl-installed"
+((pass += 1))
+
+rm -f "$KARNEL_CACHE/curl-installed"
+mock_sum=$(printf '%s\n' "$mock_installer" | sha256sum | awk '{print $1}')
+mock_tag="v4.14.0-rc1"
+if _update_try_curl >/dev/null 2>&1; then
+  printf 'FAIL: invalid release tag was not rejected\n' >&2
+  exit 1
+fi
+test ! -f "$KARNEL_CACHE/curl-installed"
+((pass += 1))
+
+mock_tag="v4.14.0"
+mock_fail=1
+if _update_try_curl >/dev/null 2>&1; then
+  printf 'FAIL: network failure did not fall through\n' >&2
+  exit 1
+fi
+mock_fail=0
+test ! -f "$KARNEL_CACHE/curl-installed"
+((pass += 1))
+
 # shellcheck source=../karnel/cli/commands/upgrade.sh
 source "$KARNEL_PATH/cli/commands/upgrade.sh"
 update_karnel() { return 1; }
