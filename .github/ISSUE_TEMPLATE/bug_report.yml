@@ -5,6 +5,33 @@ body:
   - type: markdown
     attributes:
       value: Thanks for taking the time to fill out this bug report!
+  - type: markdown
+    attributes:
+      value: Never include GitHub, npm, Vercel, Puter, or other authentication tokens, cookies, or `.env` values.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      options:
+        - Karnel update
+        - npm / global npm tool
+        - GitHub CLI (gh)
+        - Vercel CLI / deployment
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: install_method
+    attributes:
+      label: Installation method
+      options:
+        - curl installer
+        - npm
+        - pnpm
+        - Git checkout
+        - Unknown
+    validations:
+      required: true
   - type: textarea
     id: description
     attributes:
@@ -32,6 +59,13 @@ body:
     attributes:
       label: Logs / output
       description: Paste any relevant terminal output or logs.
+      placeholder: |
+        karnel --version
+        karnel doctor termux --quick
+        command -v node npm gh vercel
+
+        Redact secrets. npm/Vercel logs: $KARNEL_CACHE/install_npm.log
+        GitHub CLI logs: $KARNEL_CACHE/install_dev.log
       render: shell
   - type: input
     id: version
