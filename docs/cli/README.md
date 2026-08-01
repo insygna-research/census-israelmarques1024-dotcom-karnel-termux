@@ -187,7 +187,7 @@ karnel show utils --zork
 karnel open <target>
 ```
 
-Opens the official documentation page for a module or tool using
+Opens the official documentation page for a module using
 `termux-open-url`. Base URL: `https://karneltermux.vercel.app`
 
 | Target           | Opens |
@@ -207,6 +207,9 @@ Opens the official documentation page for a module or tool using
 | `cleanup`        | Cache cleanup |
 | `network`        | Network tools |
 | `utils`          | Utility tools |
+| `voice`          | Voice command |
+| `plugin`         | Plugin system |
+| `security`       | Security tools |
 | `osint` / `robin` | OSINT tools |
 
 ```bash

@@ -70,7 +70,7 @@ karnel_help() {
   echo
   printf "    ${D_CYAN}%-18s${NC} %s\n" "--version" "Show current version"
   printf "    ${D_CYAN}%-18s${NC} %s\n" "backup [--cron,--cloud,snapshot,list]" "Backup all Termux configs + tools"
-  printf "    ${D_CYAN}%-18s${NC} %s\n" "brain [init,ls,save,search,ask,edit,graph,sync,reset]" "Second brain — save, search, and query memories"
+  printf "    ${D_CYAN}%-18s${NC} %s\n" "brain [subcommand]" "Second brain (run 'karnel brain --help' for commands)"
   printf "    ${D_CYAN}%-18s${NC} %s\n" "cleanup" "Clean caches, logs, and temp files"
   printf "    ${D_CYAN}%-18s${NC} %s\n" "deploy [vercel,railway,netlify,supabase]" "Deploy projects to Vercel, Railway, Netlify, Supabase"
   printf "    ${D_CYAN}%-18s${NC} %s\n" "doctor [termux,code,robin]" "Run diagnostics"
@@ -81,7 +81,7 @@ karnel_help() {
   printf "    ${D_CYAN}%-18s${NC} %s\n" "install <module> [--tool...]" "Install modules and specific tools"
   printf "    ${D_CYAN}%-18s${NC} %s\n" "list [module]" "List available tools in a module"
   printf "    ${D_CYAN}%-18s${NC} %s\n" "open [module]" "Open docs in browser for a module"
-  printf "    ${D_CYAN}%-18s${NC} %s\n" "pg [start,stop,restart,status,init,create,drop,backup,restore,schedule,list,shell]" "PostgreSQL manager"
+  printf "    ${D_CYAN}%-18s${NC} %s\n" "pg <command>" "PostgreSQL manager (run 'karnel pg --help' for commands)"
   printf "    ${D_CYAN}%-18s${NC} %s\n" "plugin [install,update,list,search,remove,create]" "Plugin manager"
   printf "    ${D_CYAN}%-18s${NC} %s\n" "reinstall <module>" "Uninstall + install a module"
   printf "    ${D_CYAN}%-18s${NC} %s\n" "restore [--list,--cloud,<file>]" "Restore Termux from a backup"
@@ -100,7 +100,7 @@ karnel_help() {
   separator_section "Quick Start"
   echo
   list_item "Run: ${D_CYAN}karnel${NC} to see available commands"
-  list_item "Run: ${D_CYAN}karnel open${NC} for official documentation"
+  list_item "Run: ${D_CYAN}karnel open karnel${NC} for official documentation"
   list_item "Run: ${D_CYAN}karnel install <module>${NC} to install modules"
   list_item "Run: ${D_CYAN}karnel backup${NC} to save all configs"
   list_item "Run: ${D_CYAN}karnel restore${NC} to restore"
@@ -574,6 +574,11 @@ _tui_brain_menu() {
       "list" "List all memories" \
       "init" "Initialize Brain" \
       "graph" "View memory graph" \
+      "edit" "Edit a memory" \
+      "delete" "Delete a memory" \
+      "show" "View a memory and its relations" \
+      "skill" "Create an AI skill from memories" \
+      "relate" "Link two memories" \
       "sync" "Sync memories" \
       "reset" "Reset / Destroy Brain" \
       "back" "Back to Main Menu")
@@ -594,9 +599,9 @@ _tui_brain_menu() {
           read -r -p "Press Enter to return..." temp
         fi
         ;;
-      save)
+      save|edit|delete|show|skill|relate)
         clear
-        karnel_main "brain" "save"
+        karnel_main "brain" "$sub_choice"
         echo
         read -r -p "Press Enter to return..." temp
         ;;
@@ -906,6 +911,8 @@ _tui_pg_menu() {
       "drop" "Drop a database" \
       "backup" "Backup a database" \
       "restore" "Restore a database from backup" \
+      "list-backups" "List database backups" \
+      "schedule" "Schedule automatic backups" \
       "shell" "Open psql shell" \
       "back" "Back to Main Menu")
       
@@ -915,7 +922,7 @@ _tui_pg_menu() {
     fi
     
     case "$sub_choice" in
-      status|start|stop|restart|init|list)
+      status|start|stop|restart|init|list|list-backups|schedule)
         clear
         karnel_main "pg" "$sub_choice"
         echo

@@ -111,7 +111,8 @@ e confirmação interativa.
 Quer que seu plugin apareça em `karnel plugin search`?
 
 1. Crie um repositório GitHub com seu plugin
-2. Adicione o arquivo `karnel-plugin.json` na raiz
+2. Adicione o arquivo `karnel-plugin.json` na raiz (ou use um subdiretório e
+   declare-o em `path` na entrada do registry)
 3. Abra um PR adicionando seu repositório ao registry em:
 
    `https://github.com/israelmarques1024-dotcom/karnel-plugins`

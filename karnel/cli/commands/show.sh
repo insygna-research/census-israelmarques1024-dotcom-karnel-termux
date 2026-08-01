@@ -65,15 +65,21 @@ show_main() {
       log_error "Unknown module: $module"
       return 1
     fi
+    local documented_tools=0
     for t in "$tool_dir"/*/; do
       local name="${t%/}"
       name="${name##*/}"
       if [[ -f "$tool_dir/$name/README.md" ]]; then
+        ((documented_tools++))
         local first_line
         first_line=$(head -1 "$tool_dir/$name/README.md" 2>/dev/null)
         printf "    ${D_CYAN}%-16s${NC} %s\n" "$name" "${first_line#\# }"
       fi
     done
+    if [[ $documented_tools -eq 0 ]]; then
+      log_warn "No tool documentation is available for $module"
+      return 1
+    fi
     echo
     log_info "Run ${D_CYAN}karnel show $module --<tool>${NC} for details"
     echo
