@@ -1,5 +1,45 @@
 # Documentation Changelog
 
+## 4.13.5 - 2026-08-01
+
+### Release hardening
+
+- `karnel update karnel` now resolves the latest GitHub release tag, downloads the
+  tag-pinned `karnel-termux-install.sh` and `.sha256` assets, verifies the SHA-256
+  checksum before running, and only then falls back to git/npm/pnpm. The Release
+  workflow attaches both immutable installer assets to each tag.
+- GitHub Releases are created before npm publishing, so a failing npm publish no
+  longer blocks the release.
+- The site catalog CI now verifies that the generated catalog has not drifted from
+  a pinned CLI checkout (`generate-catalog.mjs --check`).
+
+### Fixes
+
+- Repaired the Freebuff installer (release tag, asset name, download URL, binary
+  rename) and verified install/update on Termux aarch64.
+- `karnel list` detects Kiro, KiloCode, and Cursor via any of their binaries.
+- Added troubleshooting documentation covering npm tokens, releases, Vercel, and
+  update failures.
+- Synchronized documentation with the 39-entry AI registry and the 4 deploy CLIs.
+
+## 4.9.0 - 2026-07-20
+
+### New modules
+
+- Added `network` module with 2 tools: dark (Dark Web OSINT Tor crawler) and
+  dedsec-network (multi-purpose network scanner/OSINT/pentest).
+- Added `utils` module with 11 utility scripts: fconv, filecheck, websites,
+  notes, treex, passman, applaunch, splash, httptmux, zork, and qrcode.
+
+### Documentation
+
+- Created READMEs for all 13 new tools under `karnel/tools/network/` and
+  `karnel/tools/utils/`.
+- Updated `open.sh` with `network` and `utils` targets for browser docs.
+- Updated root README, docs index, CLI reference, and architecture docs with
+  the new module counts and tool descriptions.
+- Bumped version to 4.9.0.
+
 ## 4.8.0 - 2026-07-18
 
 ### Robin OSINT
@@ -21,24 +61,6 @@
   error gating, npm package inspection, CI, and release automation.
 - Corrected competing stderr redirections in three installers.
 
-## 4.9.0 - 2026-07-20
-
-### New modules
-
-- Added `network` module with 2 tools: dark (Dark Web OSINT Tor crawler) and
-  dedsec-network (multi-purpose network scanner/OSINT/pentest).
-- Added `utils` module with 11 utility scripts: fconv, filecheck, websites,
-  notes, treex, passman, applaunch, splash, httptmux, zork, and qrcode.
-
-### Documentation
-
-- Created READMEs for all 13 new tools under `karnel/tools/network/` and
-  `karnel/tools/utils/`.
-- Updated `open.sh` with `network` and `utils` targets for browser docs.
-- Updated root README, docs index, CLI reference, and architecture docs with
-  the new module counts and tool descriptions.
-- Bumped version to 4.9.0.
-
 ## Unreleased - 2026-07-16
 
 ### Doctor command surface
@@ -47,7 +69,7 @@
 - Kept exactly two operational Doctor subcommands: `termux` and `code`.
 - Removed the stale `karnel doctor fix` entry from the main help. Termux fixes remain
   available through `karnel doctor termux --fix`.
-- Synchronized the Doctor AI probe and documentation with the 31-entry registry,
+- Synchronized the Doctor AI probe and documentation with the 39-entry registry,
   including Copilot-Termux.
 
 ### Code analysis engine

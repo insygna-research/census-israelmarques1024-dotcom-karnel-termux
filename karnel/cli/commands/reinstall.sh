@@ -30,6 +30,9 @@ reinstall_main() {
     list_item "deploy     - Reinstall deploy CLIs (Vercel, Railway, Netlify, Supabase)"
     list_item "voice      - Reinstall voice command"
     list_item "osint      - Reinstall OSINT tools"
+    list_item "security   - Reinstall security tools"
+    list_item "plugin     - Reinstall plugins"
+    list_item "supabase   - Reinstall Supabase CLI"
     echo
     log_info "Reinstall specific tools with flags:"
     echo

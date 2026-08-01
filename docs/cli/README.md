@@ -29,8 +29,8 @@ karnel install <module> --tool1 --tool2  # Install specific tools only
 | `shell`   | ZSH + Oh My Zsh + 10 plugins |
 | `ui`      | Font, cursor, extra-keys, banner |
 | `auto`    | n8n automation |
-| `deploy`  | Vercel, Railway, Netlify CLIs |
-| `games`   | Buzz, CTF God, Detective, Tamagotchi, Arcade |
+| `deploy`  | Vercel, Railway, Netlify, Supabase CLIs |
+| `games`   | Buzz, CTF God, Detective, Tamagotchi, Arcade, Pet Friends |
 | `network` | Dark Web OSINT, DedSec Network Toolkit |
 | `utils`   | fconv, filecheck, notes, qrcode, zork, httptmux (11 scripts) |
 | `osint`   | Robin v2.8 — dark web OSINT via Tor + LLM |
@@ -49,7 +49,7 @@ karnel install <module> --tool1 --tool2  # Install specific tools only
 | `editor`  | `--code-server`, `--neovim`, `--nvchad` |
 | `ui`      | `--font`, `--extra-keys`, `--cursor`, `--banner` |
 | `auto`    | `--n8n` |
-| `deploy`  | `--vercel`, `--railway`, `--netlify` |
+| `deploy`  | `--vercel`, `--railway`, `--netlify`, `--supabase` |
 | `games`   | `--buzz`, `--ctfgod`, `--detective`, `--pet-friends`, `--tamagotchi`, `--arcade` |
 | `network` | `--dark`, `--dedsec-network` |
 | `utils`   | `--fconv`, `--filecheck`, `--websites`, `--notes`, `--treex`, `--passman`, `--applaunch`, `--splash`, `--httptmux`, `--zork`, `--qrcode` |
@@ -138,11 +138,13 @@ binary/command name, and current install status.
 | `shell`   | 10 ZSH plugins |
 | `ui`      | 4 UI components |
 | `auto`    | 1 automation tool (n8n) |
-| `deploy`  | 3 deploy CLIs |
+| `deploy`  | 4 deploy CLIs |
 | `games`   | 6 games |
 | `network` | 2 network tools |
 | `utils`   | 11 utility scripts |
 | `osint`   | Robin OSINT |
+| `voice`   | Voice commands |
+| `security`| 30 security tools |
 
 ```bash
 karnel list ai
@@ -724,4 +726,4 @@ These modules work with `install`, `uninstall`, `reinstall`, `update`, `list`,
 `show`, and `open`:
 
 `ai` `auto` `db` `deploy` `dev` `editor` `games` `lang` `network` `npm`
-`osint` `shell` `ui` `utils` `voice`
+`osint` `security` `plugin` `shell` `ui` `utils` `voice`

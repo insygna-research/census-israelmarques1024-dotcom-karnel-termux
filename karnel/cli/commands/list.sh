@@ -28,6 +28,8 @@ list_main() {
     list_item "utils      - List utility scripts"
     list_item "voice      - List voice commands"
     list_item "osint      - List OSINT tools"
+    list_item "security   - List security tools"
+    list_item "plugin     - List installed plugins"
     echo
     return
   fi

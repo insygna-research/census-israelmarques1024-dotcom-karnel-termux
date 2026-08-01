@@ -31,6 +31,8 @@ install_main() {
     list_item "deploy     - Deploy CLIs (Vercel, Railway, Netlify, Supabase)"
     list_item "games      - Games (Buzz, CTF God, Detective, etc.)"
     list_item "voice      - Voice command (speech-to-agent)"
+    list_item "plugin     - Install plugins from the official registry"
+    list_item "supabase   - Supabase CLI (types, migrate, functions, secrets)"
     echo
     log_info "Install specific tools with flags:"
     echo

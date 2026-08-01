@@ -39,7 +39,7 @@ Created by **Israel Marques**.
 - **22 dev tools** — gh, curl, fzf, bat, lsd, jq, tmux, openssh, snyk and more
 - **11 utility scripts** — fconv, notes, treex, qrcode, zork and more
 - **2 network tools** — dark, dedsec-network
-- **3 deploy CLIs** — Vercel, Railway, Netlify
+- **4 deploy CLIs** — Vercel, Railway, Netlify, Supabase
 - **Responsible OSINT** — Robin v2.8 through Tor with a loopback-only web UI
 - **3 editors** — code-server (VS Code in browser), Neovim, NvChad
 - **Second brain** — Memory system with AI search and idea graph
@@ -104,7 +104,7 @@ karnel
 | `karnel start editor` | Start code-server (VS Code in browser) |
 | `karnel pg` | PostgreSQL manager |
 | `karnel init <template>` | Initialize projects with templates |
-| `karnel deploy` | Deploy projects (Vercel, Railway, Netlify) |
+| `karnel deploy` | Deploy projects (Vercel, Railway, Netlify, Supabase) |
 | `karnel robin` | Manage the Robin OSINT service |
 | `karnel --version` | Show installed version |
 
@@ -115,13 +115,13 @@ karnel
 | `lang` | Node.js, Python, Go, Rust, C/C++, PHP, Perl, Bun | `karnel install lang` |
 | `db` | PostgreSQL, MariaDB, SQLite, MongoDB, Redis | `karnel install db` |
 | `ai` | 39 AI agents for coding | `karnel install ai` |
-| `editor` | code-server (VS Code in browser) | `karnel install editor` |
+| `editor` | code-server (VS Code in browser), Neovim, NvChad | `karnel install editor` |
 | `dev` | gh, curl, fzf, bat, lsd, jq and more | `karnel install dev` |
 | `npm` | TypeScript, NestJS CLI, Prettier and more | `karnel install npm` |
 | `shell` | ZSH + Oh My Zsh + 10 plugins | `karnel install shell` |
 | `ui` | Font, cursor, extra-keys, banner | `karnel install ui` |
 | `auto` | Automation with n8n | `karnel install auto` |
-| `deploy` | Vercel, Railway, Netlify | `karnel install deploy` |
+| `deploy` | Vercel, Railway, Netlify, Supabase | `karnel install deploy` |
 | `games` | Buzz, CTF God, Detective, Tamagotchi and more | `karnel install games` |
 | `network` | Dark Web OSINT, DedSec Network Toolkit | `karnel install network` |
 | `utils` | fconv, notes, treex, passman, applaunch, qrcode, zork and more | `karnel install utils` |
@@ -240,7 +240,7 @@ See the bundled reference with `karnel show osint --robin`.
 
 ---
 
-## AI Agents (37)
+## AI Agents (39)
 
 ```bash
 karnel install ai                             # Install all
@@ -289,6 +289,8 @@ karnel install ai --opencode --ollama         # Install specific agents
 | **Oh-My-Pi** | `--oh-my-pi` | Enhanced Pi agent with native Rust addons |
 | **Goose CLI** | `--goose` | AI agent framework by Block (native Termux musl) |
 | **Factory Droid** | `--droid` | Enterprise AI agent (via proot-distro Ubuntu) |
+| **Supercode CLI** | `--supercode-cli` | Supercode CLI — official npm package |
+| **Puter CLI** | `--puter` | Puter CLI for sites and workers |
  
 </details>
 
@@ -448,6 +450,7 @@ Deploy your projects directly from terminal:
 karnel deploy vercel                  # Deploy to Vercel
 karnel deploy railway                 # Deploy to Railway
 karnel deploy netlify                 # Deploy to Netlify
+karnel deploy supabase                # Deploy to Supabase
 ```
 
 Platform CLIs are installed automatically.

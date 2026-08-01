@@ -30,6 +30,9 @@ uninstall_main() {
     list_item "deploy     - Remove deploy CLIs (Vercel, Railway, Netlify, Supabase)"
     list_item "voice      - Remove voice command"
     list_item "osint      - Remove OSINT tools"
+    list_item "security   - Remove security tools"
+    list_item "plugin     - Remove plugins"
+    list_item "supabase   - Remove Supabase CLI"
     echo
     log_info "Uninstall specific tools with flags:"
     echo

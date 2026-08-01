@@ -15,6 +15,7 @@ deploy_main() {
     list_item "vercel    - Deploy to Vercel"
     list_item "railway   - Deploy to Railway"
     list_item "netlify   - Deploy to Netlify"
+    list_item "supabase  - Deploy to Supabase"
     echo
     log_info "Usage: ${D_CYAN}karnel deploy vercel${NC}"
     echo
@@ -34,6 +35,7 @@ deploy_main() {
     list_item "vercel    - Deploy to Vercel"
     list_item "railway   - Deploy to Railway"
     list_item "netlify   - Deploy to Netlify"
+    list_item "supabase  - Deploy to Supabase"
     echo
     log_info "Usage: ${D_CYAN}karnel deploy vercel${NC}"
     echo
@@ -60,9 +62,16 @@ deploy_main() {
     fi
     exec netlify "${@:2}"
     ;;
+  supabase)
+    if ! command -v supabase &>/dev/null; then
+      log_warn "Supabase CLI not installed. Run: karnel install deploy --supabase"
+      return 1
+    fi
+    exec supabase "${@:2}"
+    ;;
   *)
     log_warn "Unknown deploy tool: $tool"
-    echo "Available: vercel, railway, netlify"
+    echo "Available: vercel, railway, netlify, supabase"
     return 1
     ;;
   esac

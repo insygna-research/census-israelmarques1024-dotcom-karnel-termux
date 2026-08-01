@@ -72,7 +72,7 @@ karnel_help() {
   printf "    ${D_CYAN}%-18s${NC} %s\n" "backup [--cron,--cloud,snapshot,list]" "Backup all Termux configs + tools"
   printf "    ${D_CYAN}%-18s${NC} %s\n" "brain [init,ls,save,search,ask,edit,graph,sync,reset]" "Second brain — save, search, and query memories"
   printf "    ${D_CYAN}%-18s${NC} %s\n" "cleanup" "Clean caches, logs, and temp files"
-  printf "    ${D_CYAN}%-18s${NC} %s\n" "deploy [vercel,railway,netlify]" "Deploy projects to Vercel, Railway, Netlify"
+  printf "    ${D_CYAN}%-18s${NC} %s\n" "deploy [vercel,railway,netlify,supabase]" "Deploy projects to Vercel, Railway, Netlify, Supabase"
   printf "    ${D_CYAN}%-18s${NC} %s\n" "doctor [termux,code,robin]" "Run diagnostics"
   printf "    ${D_CYAN}%-18s${NC} %s\n" "env [set,unset,list]" "Manage environment variables"
   printf "    ${D_CYAN}%-18s${NC} %s\n" "help" "Show this help screen"
@@ -110,7 +110,7 @@ karnel_help() {
   echo
   log_info "Use with: karnel install|update|reinstall|uninstall <target> [--tool...]"
   echo
-   printf "    ${D_GREEN}%-10s${NC} %s\n" "ai" "38 AI tools (OpenCode, Claude, Ollama, Copilot-Termux, Goose, etc.)"
+   printf "    ${D_GREEN}%-10s${NC} %s\n" "ai" "39 AI tools (OpenCode, Claude, Ollama, Copilot-Termux, Goose, etc.)"
   printf "    ${D_GREEN}%-10s${NC} %s\n" "auto" "Automation (n8n)"
   printf "    ${D_GREEN}%-10s${NC} %s\n" "db" "PostgreSQL, MariaDB, SQLite, MongoDB, Redis"
   printf "    ${D_GREEN}%-10s${NC} %s\n" "deploy" "Vercel, Railway, Netlify, Supabase CLIs"
@@ -370,7 +370,7 @@ _tui_list_menu() {
   local modules="ai db lang dev editor npm shell ui auto deploy games network utils osint voice plugin security"
   local choice
   choice=$(_dialog_menu "List Tools" "Select a module to list:" \
-    "ai" "AI Agents (37)" \
+    "ai" "AI Agents (39)" \
     "db" "Databases" \
     "lang" "Programming Languages" \
     "editor" "Code Editors" \

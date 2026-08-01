@@ -29,6 +29,7 @@ update_main() {
     list_item "utils      - Update utility scripts"
     list_item "games      - Update games"
     list_item "deploy     - Update deploy CLIs (Vercel, Railway, Netlify, Supabase)"
+    list_item "supabase   - Update Supabase CLI"
     list_item "voice      - Update voice command"
     list_item "osint      - Update OSINT tools"
     list_item "security   - Update security tools"
