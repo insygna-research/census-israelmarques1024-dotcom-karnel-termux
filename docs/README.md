@@ -6,6 +6,7 @@
 
 - [CLI Commands](./cli/README.md) — All `karnel` subcommands
 - [Doctor System](./doctor/README.md) — Environment diagnosis and code analysis
+- [Troubleshooting](./troubleshooting.md) — Common issues and fixes
 - [Architecture Overview](./ARCHITECTURE.md)
 - [Bug Fixes & Changelog](./CHANGELOG.md)
 - [Official Documentation Site](https://karneltermux.vercel.app/karnel/doctor)

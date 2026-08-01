@@ -473,6 +473,7 @@ Documentation loads from https://karneltermux.vercel.app.
 - [Documentation index](docs/README.md)
 - [CLI reference](docs/cli/README.md)
 - [Doctor reference](docs/doctor/README.md)
+- [Troubleshooting](docs/troubleshooting.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Documentation changelog](docs/CHANGELOG.md)
 - [Official website](https://karneltermux.vercel.app)
@@ -570,9 +571,11 @@ karnel update karnel     # Update the framework
 
 `karnel update` requires a target such as `karnel`, `ai`, or `security`.
 `karnel update karnel` first runs the official curl installer, then falls back to
-the local Git checkout and package-manager installs if needed. The framework
-checks for a new version in the background at most once every 24 hours; the check
-can use npm or GitHub and writes state under `$KARNEL_CACHE`.
+the local Git checkout and package-manager installs if needed. The curl installer
+is pinned to the latest GitHub release tag, and its SHA-256 checksum is verified
+before it runs. The framework checks for a new version in the background at most
+once every 24 hours; the check can use npm or GitHub and writes state under
+`$KARNEL_CACHE`.
 
 ---
 
