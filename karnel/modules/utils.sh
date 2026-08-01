@@ -25,6 +25,7 @@ install_utils() {
   fi
   separator
   echo
+  return "$rc"
 }
 
 uninstall_utils() {
@@ -47,6 +48,7 @@ uninstall_utils() {
   else
     log_warn "$rc utility tool(s) failed to uninstall"
   fi
+  return "$rc"
 }
 
 update_utils() {
@@ -65,6 +67,7 @@ update_utils() {
   else
     log_warn "$rc utility tool(s) failed to update"
   fi
+  return "$rc"
 }
 
 reinstall_utils() {
@@ -85,4 +88,5 @@ reinstall_utils() {
   fi
   separator
   echo
+  return "$rc"
 }

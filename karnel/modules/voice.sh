@@ -37,6 +37,7 @@ install_voice() {
   list_item "Voice CLI: ${D_CYAN}karnel voice [agent]${NC}"
   list_item "Install Termux:API app from: ${D_CYAN}https://karneltermux.vercel.app/termux/api${NC}"
   echo
+  return "$rc"
 }
 
 _install_voice_deps() {
@@ -65,6 +66,7 @@ uninstall_voice() {
   else
     log_warn "$rc voice component(s) failed to uninstall"
   fi
+  return "$rc"
 }
 
 _uninstall_voice_wrapper() {
@@ -87,6 +89,7 @@ update_voice() {
   else
     log_warn "$rc voice component(s) failed to update"
   fi
+  return "$rc"
 }
 
 _update_voice_wrapper() {
@@ -115,6 +118,7 @@ reinstall_voice() {
   list_item "Termux:API (speech-to-text, clipboard)"
   list_item "Voice CLI: ${D_CYAN}karnel voice [agent]${NC}"
   echo
+  return "$rc"
 }
 
 _reinstall_voice_wrapper() {

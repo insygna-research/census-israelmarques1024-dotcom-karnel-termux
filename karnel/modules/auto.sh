@@ -26,6 +26,7 @@ install_auto() {
 	echo
 	list_item "n8n"
 	echo
+	return "$rc"
 }
 
 _install_auto_wrapper() {
@@ -53,6 +54,7 @@ uninstall_auto() {
 	else
 		log_warn "$rc automation tool(s) failed to uninstall"
 	fi
+	return "$rc"
 }
 
 _uninstall_auto_wrapper() {
@@ -76,6 +78,7 @@ update_auto() {
 	else
 		log_warn "$rc automation tool(s) failed to update"
 	fi
+	return "$rc"
 }
 
 _update_auto_wrapper() {
@@ -103,8 +106,9 @@ reinstall_auto() {
   fi
   separator
   echo
-  list_item "n8n"
-  echo
+	list_item "n8n"
+	echo
+	return "$rc"
 }
 
 _reinstall_auto_wrapper() {

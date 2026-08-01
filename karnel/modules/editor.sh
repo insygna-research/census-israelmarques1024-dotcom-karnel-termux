@@ -28,6 +28,7 @@ install_editor() {
 	list_item "Access at http://localhost:8080"
 	list_item "Set password: ${D_CYAN}code-server --auth password${NC}"
 	echo
+	return "$rc"
 }
 
 uninstall_editor() {
@@ -49,6 +50,7 @@ uninstall_editor() {
 	else
 		log_warn "$rc editor component(s) failed to uninstall"
 	fi
+	return "$rc"
 }
 
 update_editor() {
@@ -66,6 +68,7 @@ update_editor() {
 	else
 		log_warn "$rc editor component(s) failed to update"
 	fi
+	return "$rc"
 }
 
 reinstall_editor() {
@@ -88,6 +91,7 @@ reinstall_editor() {
   list_item "code-server (VS Code in browser)"
   list_item "Access at http://localhost:8080"
   echo
+  return "$rc"
 }
 
 _install_editor_wrapper() {

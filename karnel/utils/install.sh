@@ -52,7 +52,7 @@ github_download_release() {
   local url="https://github.com/$repo/releases/download/$version/$asset"
   local tmpfile="$outdir/$(basename "$asset")"
   mkdir -p "$outdir"
-  if ! curl -fsSL "$url" -o "$tmpfile" &>>"$LOG_FILE"; then
+  if ! curl --fail --silent --show-error --location "$url" -o "$tmpfile" &>>"$LOG_FILE"; then
     log_error "Failed to download $asset from $repo"
     return 1
   fi
@@ -61,6 +61,18 @@ github_download_release() {
 
 extract_tarball() {
   local tarball="$1" outdir="$2"
+  local member
+  while IFS= read -r member; do
+    case "$member" in
+      /*|../*|*/../*|..)
+        log_error "Refusing unsafe archive member: $member"
+        return 1
+        ;;
+    esac
+  done < <(tar -tzf "$tarball" 2>>"$LOG_FILE") || {
+    log_error "Failed to inspect $tarball"
+    return 1
+  }
   if ! tar -zxf "$tarball" -C "$outdir" &>>"$LOG_FILE"; then
     log_error "Failed to extract $tarball"
     return 1

@@ -110,7 +110,7 @@ karnel_help() {
   echo
   log_info "Use with: karnel install|update|reinstall|uninstall <target> [--tool...]"
   echo
-  printf "    ${D_GREEN}%-10s${NC} %s\n" "ai" "37 AI tools (OpenCode, Claude, Ollama, Copilot-Termux, Goose, etc.)"
+   printf "    ${D_GREEN}%-10s${NC} %s\n" "ai" "38 AI tools (OpenCode, Claude, Ollama, Copilot-Termux, Goose, etc.)"
   printf "    ${D_GREEN}%-10s${NC} %s\n" "auto" "Automation (n8n)"
   printf "    ${D_GREEN}%-10s${NC} %s\n" "db" "PostgreSQL, MariaDB, SQLite, MongoDB, Redis"
   printf "    ${D_GREEN}%-10s${NC} %s\n" "deploy" "Vercel, Railway, Netlify, Supabase CLIs"
@@ -791,6 +791,8 @@ _tui_install_checklist() {
         "oh-my-pi" "Oh-My-Pi" OFF
         "goose" "Goose CLI" OFF
         "droid" "Factory Droid" OFF
+        "supercode-cli" "Supercode CLI" OFF
+        "puter" "Puter CLI" OFF
       )
       ;;
     dev)

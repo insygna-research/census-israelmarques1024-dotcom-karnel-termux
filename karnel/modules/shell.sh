@@ -172,6 +172,7 @@ install_shell() {
 	echo
 	log_warn "Please restart Termux or run: exec zsh"
 	echo
+	return "$rc"
 }
 
 _install_shell_plugins_wrapper() {
@@ -258,6 +259,7 @@ uninstall_shell() {
 	fi
 	separator
 	echo
+	return "$rc"
 }
 
 _uninstall_shell_plugins_wrapper() {
@@ -289,6 +291,7 @@ update_shell() {
 	log_success "ZSH update completed"
 	separator
 	echo
+	return "$rc"
 }
 
 _update_shell_plugins_wrapper() {
@@ -327,8 +330,9 @@ reinstall_shell() {
   fi
   separator
   echo
-  log_warn "Please restart Termux or run: exec zsh"
-  echo
+	log_warn "Please restart Termux or run: exec zsh"
+	echo
+	return "$rc"
 }
 
 _reinstall_shell_plugins_wrapper() {

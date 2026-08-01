@@ -35,6 +35,7 @@ install_db() {
 	list_item "MongoDB"
 	list_item "Redis"
 	echo
+	return "$install_rc"
 }
 
 _install_db_tools_wrapper() {
@@ -65,6 +66,7 @@ uninstall_db() {
 	else
 		log_warn "$rc database(s) failed to uninstall"
 	fi
+	return "$rc"
 }
 
 _uninstall_db_tools_wrapper() {
@@ -91,6 +93,7 @@ update_db() {
 	else
 		log_warn "$rc database(s) failed to update"
 	fi
+	return "$rc"
 }
 
 _update_db_tools_wrapper() {
@@ -123,8 +126,9 @@ reinstall_db() {
   list_item "MariaDB (MySQL)"
   list_item "SQLite"
   list_item "MongoDB"
-  list_item "Redis"
-  echo
+	list_item "Redis"
+	echo
+	return "$rc"
 }
 
 _reinstall_db_tools_wrapper() {

@@ -38,6 +38,7 @@ install_npm() {
 	fi
 	separator
 	echo
+	return "$install_rc"
 }
 
 _install_npm_wrapper() {
@@ -70,6 +71,7 @@ uninstall_npm() {
 	fi
 	separator
 	echo
+	return "$rc"
 }
 
 _uninstall_npm_wrapper() {
@@ -98,6 +100,7 @@ update_npm() {
 	fi
 	separator
 	echo
+	return "$rc"
 }
 
 _update_npm_wrapper() {
@@ -134,9 +137,10 @@ reinstall_npm() {
 		log_success "Node.js modules reinstallation completed"
   else
 		log_warn "$rc Node.js module(s) failed to reinstall"
-  fi
-  separator
-  echo
+	fi
+	separator
+	echo
+	return "$rc"
 }
 
 _reinstall_npm_wrapper() {

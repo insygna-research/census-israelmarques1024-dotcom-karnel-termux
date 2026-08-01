@@ -168,6 +168,7 @@ _update_full_module() {
   *)
     log_warn "Unknown update target: $target"
     echo "Run 'karnel update' to see available targets"
+    return 1
     ;;
   esac
 }
@@ -195,12 +196,12 @@ update_karnel() {
   _update_try_npm && { _update_cleanup; return 0; }
   _update_try_npm_install && { _update_cleanup; return 0; }
   _update_try_pnpm && { _update_cleanup; return 0; }
-  _update_try_curl && { _update_cleanup; return 0; }
 
   log_error "All update methods failed"
   _update_show_manual
 
   echo
+  return 1
 }
 
 _update_cleanup() {
@@ -261,25 +262,11 @@ _update_try_pnpm() {
   return 1
 }
 
-_update_try_curl() {
-  command -v curl &>/dev/null || return 1
-  log_info "Trying curl reinstall..."
-  local tmp_install
-  tmp_install=$(mktemp "${TMPDIR:-/tmp}/karnel.XXXXXX")
-  if curl -fsSL "https://raw.githubusercontent.com/israelmarques1024-dotcom/karnel-termux/main/install.sh" -o "$tmp_install" 2>/dev/null; then
-    head -5 "$tmp_install" | grep -qi "karnel" || { rm -f "$tmp_install"; log_error "Downloaded file is not a valid Karnel installer"; return 1; }
-    bash "$tmp_install" 2>/dev/null && { rm -f "$tmp_install"; log_success "Updated via curl"; return 0; }
-  fi
-  rm -f "$tmp_install"
-  return 1
-}
-
 _update_show_manual() {
   log_info "Update manually with one of these:"
   echo
   echo "  npm install -g karnel-termux@latest"
   echo "  pnpm add -g karnel-termux@latest"
-  echo "  bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/israelmarques1024-dotcom/karnel-termux/main/install.sh)\""
   echo
 }
 

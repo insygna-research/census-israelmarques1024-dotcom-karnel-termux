@@ -204,6 +204,8 @@ _list_ai() {
   table_row "Goose CLI" "--goose" "goose" "$(_check_cmd "goose")"
   table_row "Factory Droid" "--droid" "droid" "$(_check_cmd "droid")"
   table_row "Copilot-Termux" "--copilot-termux" "copilot" "$(_check_cmd "copilot")"
+  table_row "Supercode CLI" "--supercode-cli" "supercode" "$(_check_cmd "supercode")"
+  table_row "Puter CLI" "--puter" "puter" "$(_check_cmd "puter")"
   table_end
 
   echo
@@ -555,6 +557,26 @@ _list_security() {
   table_row "John the Ripper" "--john" "john" "$(_check_cmd "john")"
   table_row "Aircrack-ng" "--aircrack-ng" "aircrack-ng" "$(_check_cmd "aircrack-ng")"
   table_row "Metasploit" "--metasploit" "msfconsole" "$(_check_cmd "msfconsole")"
+  table_row "Burp Suite" "--burpsuite" "burpsuite" "$(_check_cmd "burpsuite")"
+  table_row "OWASP ZAP" "--zap" "zap" "$(_check_cmd "zap")"
+  table_row "Enum4linux" "--enum4linux" "enum4linux" "$(_check_cmd "enum4linux")"
+  table_row "SMB client" "--smbclient" "smbclient" "$(_check_cmd "smbclient")"
+  table_row "FFUF" "--ffuf" "ffuf" "$(_check_cmd "ffuf")"
+  table_row "WhatWeb" "--whatweb" "whatweb" "$(_check_cmd "whatweb")"
+  table_row "WAFW00F" "--wafw00f" "wafw00f" "$(_check_cmd "wafw00f")"
+  table_row "DNSRecon" "--dnsrecon" "dnsrecon" "$(_check_cmd "dnsrecon")"
+  table_row "theHarvester" "--theharvester" "theHarvester" "$(_check_cmd "theHarvester")"
+  table_row "Subfinder" "--subfinder" "subfinder" "$(_check_cmd "subfinder")"
+  table_row "Amass" "--amass" "amass" "$(_check_cmd "amass")"
+  table_row "Masscan" "--masscan" "masscan" "$(_check_cmd "masscan")"
+  table_row "Netcat" "--netcat" "nc" "$(_check_cmd "nc")"
+  table_row "Tcpdump" "--tcpdump" "tcpdump" "$(_check_cmd "tcpdump")"
+  table_row "Whois" "--whois" "whois" "$(_check_cmd "whois")"
+  table_row "Hashcat" "--hashcat" "hashcat" "$(_check_cmd "hashcat")"
+  table_row "Binwalk" "--binwalk" "binwalk" "$(_check_cmd "binwalk")"
+  table_row "Foremost" "--foremost" "foremost" "$(_check_cmd "foremost")"
+  table_row "Steghide" "--steghide" "steghide" "$(_check_cmd "steghide")"
+  table_row "ExifTool" "--exiftool" "exiftool" "$(_check_cmd "exiftool")"
   table_end
   echo
   log_info "Install all: ${D_CYAN}karnel install security${NC}"
@@ -571,5 +593,3 @@ _list_voice() {
   list_item "Usage: ${D_CYAN}karnel install voice${NC}"
   echo
 }
-
-

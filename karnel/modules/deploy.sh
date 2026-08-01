@@ -20,6 +20,7 @@ install_deploy() {
   else
     log_warn "$rc deploy tool(s) failed to install"
   fi
+  return "$rc"
 }
 
 _install_deploy_wrapper() {
@@ -45,6 +46,7 @@ uninstall_deploy() {
   else
     log_warn "$rc deploy tool(s) failed to uninstall"
   fi
+  return "$rc"
 }
 
 update_deploy() {
@@ -60,6 +62,7 @@ update_deploy() {
   else
     log_warn "$rc deploy tool(s) failed to update"
   fi
+  return "$rc"
 }
 
 reinstall_deploy() {
@@ -75,4 +78,5 @@ reinstall_deploy() {
   else
     log_warn "$rc deploy tool(s) failed to reinstall"
   fi
+  return "$rc"
 }

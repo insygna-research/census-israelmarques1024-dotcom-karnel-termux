@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/israelmarques1024-dotcom/karnel-termux">
-    <img src="https://img.shields.io/badge/version-4.13.0-0078D4?style=for-the-badge" alt="Version">
+    <img src="https://img.shields.io/badge/version-4.13.2-0078D4?style=for-the-badge" alt="Version">
   </a>
   <a href="https://www.npmjs.com/package/karnel-termux">
     <img src="https://img.shields.io/npm/v/karnel-termux?style=for-the-badge&logo=npm&color=cb3837" alt="npm">
@@ -33,7 +33,7 @@
 
 Created by **Israel Marques**.
 
-- **37 AI agents** for coding — Claude, Gemini, OpenCode, Qoder, Ollama, Goose, Factory Droid, Cline, OmniRoute and more
+- **39 AI agents** for coding — Claude, Gemini, OpenCode, Qoder, Ollama, Goose, Factory Droid, Cline, Puter, OmniRoute and more
 - **8 languages** — Node.js, Python, Go, Rust, C/C++, PHP, Perl, Bun
 - **5 databases** — PostgreSQL, MariaDB, SQLite, MongoDB, Redis
 - **22 dev tools** — gh, curl, fzf, bat, lsd, jq, tmux, openssh, snyk and more
@@ -114,7 +114,7 @@ karnel
 |--------|-------------|--------------|
 | `lang` | Node.js, Python, Go, Rust, C/C++, PHP, Perl, Bun | `karnel install lang` |
 | `db` | PostgreSQL, MariaDB, SQLite, MongoDB, Redis | `karnel install db` |
-| `ai` | 37 AI agents for coding | `karnel install ai` |
+| `ai` | 39 AI agents for coding | `karnel install ai` |
 | `editor` | code-server (VS Code in browser) | `karnel install editor` |
 | `dev` | gh, curl, fzf, bat, lsd, jq and more | `karnel install dev` |
 | `npm` | TypeScript, NestJS CLI, Prettier and more | `karnel install npm` |
@@ -172,6 +172,32 @@ The installed plugin directory is `${XDG_DATA_HOME:-$HOME/.local/share}/karnel-d
 See the [official plugin registry](https://github.com/israelmarques1024-dotcom/karnel-plugins)
 for schemas, review policy, and safe publication requirements.
 
+## AI CLIs
+
+Supercode CLI and Puter CLI are available in the `ai` module. They require
+Node.js 18 or newer and install their official npm packages.
+
+```bash
+karnel install ai --supercode-cli
+supercode
+```
+
+## Puter CLI
+
+Puter CLI is available in the `ai` module for managing Puter sites and workers.
+
+```bash
+karnel install ai --puter
+puter login
+puter whoami
+puter site deploy [directory] [subdomain]
+puter worker deploy [file] [name]
+```
+
+For noninteractive automation, configure `PUTER_AUTH_TOKEN` in your own
+environment. Do not place tokens in the repository, shell history, screenshots,
+or issue reports.
+
 ## Security Tools
 
 Install security auditing tools:
@@ -181,7 +207,9 @@ karnel install security                           # Install all
 karnel install security --nmap --hydra --sqlmap    # Install specific ones
 ```
 
-Includes: Nmap, Hydra, Nikto, SQLMap, Gobuster, Dirb, WPScan, John the Ripper, Aircrack-ng, Metasploit.
+Includes 30 tools: Nmap, Hydra, Nikto, SQLMap, Gobuster, Dirb, WPScan, John the
+Ripper, Aircrack-ng, Metasploit, Burp Suite, OWASP ZAP, FFUF, Amass, Hashcat and
+more. Use only on systems you own or are authorized to test.
 
 ---
 
@@ -492,7 +520,7 @@ karnel/
 │   │   └── karnel.sh    # Main CLI (with TUI)
 │   ├── modules/       # Module orchestrators
 │   ├── tools/         # Tool installers
-│   │   ├── ai/        # 37 AI agents
+│   │   ├── ai/        # 39 AI agents
 │   │   ├── lang/      # 8 languages
 │   │   ├── db/        # 5 databases
 │   │   ├── dev/       # 22 dev tools
@@ -539,6 +567,24 @@ The framework checks for updates every 24 hours in background.
 ```bash
 karnel update karnel     # Update the framework
 ```
+
+`karnel update` requires a target such as `karnel`, `ai`, or `security`. The
+framework checks for a new version in the background at most once every 24 hours;
+the check can use npm or GitHub and writes state under `$KARNEL_CACHE`.
+
+---
+
+## Verification And Limits
+
+The repository CI validates Bash/Zsh syntax, ShellCheck errors, CLI smoke tests,
+version behavior, Robin contracts, plugin lifecycle contracts, and npm package
+contents. The official documentation site validates its catalog contracts,
+TypeScript, formatting, tests, and production build.
+
+These checks do not install every external tool or prove behavior on every Android
+device. Before relying on a new installer, test it in native Termux aarch64 with a
+disposable environment and verify network, storage, PRoot, and Termux:API behavior
+for your device.
 
 ---
 

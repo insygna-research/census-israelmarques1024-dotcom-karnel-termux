@@ -167,6 +167,7 @@ _install_full_module() {
   *)
     log_warn "Unknown install target: $target"
     echo "Run 'karnel install' to see available targets"
+    return 1
     ;;
   esac
 }
@@ -833,6 +834,7 @@ _install_specific_tools() {
   *)
     log_warn "Unknown install target: $module"
     echo "Run 'karnel install' to see available targets"
-    ;;
+    return 1
+  ;;
   esac
 }

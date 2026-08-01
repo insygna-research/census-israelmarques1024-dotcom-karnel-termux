@@ -58,6 +58,8 @@ AI_TOOLS_REGISTRY=(
   "omni-route:omniRoute:omni-route"
   "ctx7:Context7 Documentation Provider:ctx7"
   "openspec:OpenSpec SDD Framework:openspec"
+  "supercode-cli:Supercode CLI:supercode"
+  "puter:Puter CLI:puter"
   "copilot-termux:Copilot-Termux:copilot"
   "qoder:Qoder:qodercli"
   "ampcode:AMP Code CLI:amp"

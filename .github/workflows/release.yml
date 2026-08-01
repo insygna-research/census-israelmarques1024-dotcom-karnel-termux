@@ -34,7 +34,8 @@ jobs:
         run: |
           version=$(node -p "require('./package.json').version")
           test "$RELEASE_TAG" = "v$version"
-          test "$(grep '^KARNEL_VERSION=' karnel/utils/env.sh | cut -d'"' -f2)" = "$version"
+          env_version=$(KARNEL_PATH="$PWD/karnel" bash -c 'source karnel/utils/env.sh; printf "%s" "$KARNEL_VERSION"')
+          test "$env_version" = "$version"
       - name: Validate release
         run: npm run ci
       - name: Build package artifact

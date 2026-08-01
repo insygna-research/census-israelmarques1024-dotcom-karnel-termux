@@ -40,27 +40,41 @@ done
 _batch_security() {
   local action="$1"
   local action_past="$2"
-  if [[ "$3" != "_unused" ]]; then
-    local -n count_var="$3"
-  else
-    local count_var
-  fi
+  local count_var="$3"
+  local skipped_var="${4:-_unused}"
+  local failed_var="${5:-_unused}"
+  local count=0
+  local skipped=0
+  local failed=0
+  local func_name
   for tool in "${SECURITY_TOOLS[@]}"; do
     func_name="${action}_${tool//-/_}"
     loading "${action_past^}ing ${tool}" "$func_name"
     case $? in
-      0) ((count_var++)) 2>/dev/null || true;;
-      2) ((skipped_count++));;
-      *) ((failed_count++));;
+      0) ((count += 1));;
+      2) ((skipped += 1));;
+      *) ((failed += 1));;
     esac
   done
+  if [[ "$count_var" != "_unused" ]]; then
+    printf -v "$count_var" '%s' "$count"
+  fi
+  if [[ "$skipped_var" != "_unused" ]]; then
+    printf -v "$skipped_var" '%s' "$skipped"
+  fi
+  if [[ "$failed_var" != "_unused" ]]; then
+    printf -v "$failed_var" '%s' "$failed"
+  fi
+  (( failed == 0 ))
 }
 
 install_all_security() {
   local installed_count=0 skipped_count=0 failed_count=0
-  _batch_security "install" "install" installed_count
+  local rc=0
+  _batch_security "install" "install" installed_count skipped_count failed_count || rc=$?
   echo
   log_success "Security: $installed_count installed, $skipped_count skipped, $failed_count failed"
+  return "$rc"
 }
 
 uninstall_all_security() { _batch_security "uninstall" "uninstall" _unused; }

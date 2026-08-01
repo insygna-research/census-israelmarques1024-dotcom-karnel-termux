@@ -164,6 +164,7 @@ _uninstall_full_module() {
   *)
     log_warn "Unknown uninstall target: $target"
     echo "Run 'karnel uninstall' to see available targets"
+    return 1
     ;;
   esac
 }

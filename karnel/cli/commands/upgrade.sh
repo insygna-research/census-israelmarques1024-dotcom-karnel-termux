@@ -10,7 +10,10 @@ upgrade_main() {
   echo
 
   import "@/cli/commands/update"
-  update_karnel
+  if ! update_karnel; then
+    log_error "Karnel upgrade failed"
+    return 1
+  fi
 
   source "$KARNEL_PATH/utils/env.sh" 2>/dev/null
   log_success "Karnel upgraded to v$KARNEL_VERSION"

@@ -25,6 +25,7 @@ install_games() {
   fi
   separator
   echo
+  return "$rc"
 }
 
 uninstall_games() {
@@ -47,6 +48,7 @@ uninstall_games() {
   else
     log_warn "$rc game(s) failed to uninstall"
   fi
+  return "$rc"
 }
 
 update_games() {
@@ -65,6 +67,7 @@ update_games() {
   else
     log_warn "$rc game(s) failed to update"
   fi
+  return "$rc"
 }
 
 reinstall_games() {
@@ -85,4 +88,5 @@ reinstall_games() {
   fi
   separator
   echo
+  return "$rc"
 }

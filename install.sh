@@ -66,13 +66,21 @@ log_info() {
 }
 
 _INSTALL_CREATED_KARNEL_REPO=false
+_INSTALL_CREATED_KARNEL_SYMLINK=false
+_INSTALL_PREVIOUS_KARNEL_SYMLINK=""
 
 _cleanup_failed() {
 	echo -e "\n  ${P_FAIL}✖${P_NC}  Installation failed at step ${CURRENT_STEP}. Cleaning up..."
 	if $_INSTALL_CREATED_KARNEL_REPO && [[ -d "$KARNEL_REPO" ]]; then
 		rm -rf "$KARNEL_REPO"
 	fi
-	[[ -L "$PREFIX/bin/karnel" ]] && rm -f "$PREFIX/bin/karnel"
+	if $_INSTALL_CREATED_KARNEL_SYMLINK && [[ -L "$PREFIX/bin/karnel" ]]; then
+		if [[ -n "$_INSTALL_PREVIOUS_KARNEL_SYMLINK" ]]; then
+			ln -sfn "$_INSTALL_PREVIOUS_KARNEL_SYMLINK" "$PREFIX/bin/karnel"
+		else
+			rm -f "$PREFIX/bin/karnel"
+		fi
+	fi
 	echo -e "  ${P_DIM}Run install.sh again to retry${P_NC}"
 	exit 1
 }
@@ -195,7 +203,10 @@ clone_repo() {
 		log_ok "Using local repository"
 	elif [[ -d "$KARNEL_REPO/.git" ]]; then
 		progress_bar 3 10
-		git -C "$KARNEL_REPO" pull origin "$BRANCH" &>/dev/null
+		if ! git -C "$KARNEL_REPO" pull origin "$BRANCH" &>/dev/null; then
+			log_fail "Failed to update existing repository"
+			return 1
+		fi
 		progress_bar 10 10
 		echo
 		log_ok "Repository updated"
@@ -235,10 +246,18 @@ create_symlink() {
 
 	command -v termux-fix-shebang &>/dev/null && termux-fix-shebang "$KARNEL_REPO/karnel/bin/karnel" &>/dev/null
 
+	if [[ -e "$PREFIX/bin/karnel" && ! -L "$PREFIX/bin/karnel" ]]; then
+		log_fail "Refusing to replace existing non-symlink: $PREFIX/bin/karnel"
+		return 1
+	fi
+	if [[ -L "$PREFIX/bin/karnel" ]]; then
+		_INSTALL_PREVIOUS_KARNEL_SYMLINK="$(readlink "$PREFIX/bin/karnel")"
+	fi
 	rm -f "$PREFIX/bin/karnel"
 	ln -sf "$KARNEL_REPO/karnel/bin/karnel" "$PREFIX/bin/karnel"
 
 	if [[ -L "$PREFIX/bin/karnel" ]]; then
+		_INSTALL_CREATED_KARNEL_SYMLINK=true
 		log_ok "Symlink created: karnel → ${KARNEL_REPO}/karnel/bin/karnel"
 	else
 		log_fail "Failed to create symlink"

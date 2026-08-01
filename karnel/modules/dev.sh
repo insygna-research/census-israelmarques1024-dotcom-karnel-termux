@@ -26,6 +26,7 @@ install_dev() {
 	echo
 	_show_dev_summary
 	echo
+	return "$rc"
 }
 
 _install_dev_wrapper() {
@@ -53,6 +54,7 @@ uninstall_dev() {
 	else
 		log_warn "$rc tool(s) failed to uninstall"
 	fi
+	return "$rc"
 }
 
 _uninstall_dev_wrapper() {
@@ -76,6 +78,7 @@ update_dev() {
 	else
 		log_warn "$rc tool(s) failed to update"
 	fi
+	return "$rc"
 }
 
 _update_dev_wrapper() {
@@ -101,8 +104,9 @@ reinstall_dev() {
   fi
   separator
   echo
-  _show_dev_summary
-  echo
+	_show_dev_summary
+	echo
+	return "$rc"
 }
 
 _reinstall_dev_wrapper() {

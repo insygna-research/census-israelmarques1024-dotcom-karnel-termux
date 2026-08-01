@@ -32,6 +32,7 @@ install_lang() {
 	list_item "C/C++ (clang)"
 	list_item "Go (golang)"
 	echo
+	return "$rc"
 }
 
 _install_lang_wrapper() {
@@ -59,6 +60,7 @@ uninstall_lang() {
 	else
 		log_warn "$rc language package(s) failed to uninstall"
 	fi
+	return "$rc"
 }
 
 _uninstall_lang_wrapper() {
@@ -82,6 +84,7 @@ update_lang() {
 	else
 		log_warn "$rc language package(s) failed to update"
 	fi
+	return "$rc"
 }
 
 _update_lang_wrapper() {
@@ -113,8 +116,9 @@ reinstall_lang() {
   list_item "PHP"
   list_item "Rust"
   list_item "C/C++ (clang)"
-  list_item "Go (golang)"
-  echo
+	list_item "Go (golang)"
+	echo
+	return "$rc"
 }
 
 _reinstall_lang_wrapper() {

@@ -89,6 +89,7 @@ uninstall_ai() {
   else
     log_warn "AI tools uninstalled with $rc failure(s)"
   fi
+  return "$rc"
 }
 
 _uninstall_ai_tools_wrapper() {
@@ -111,6 +112,7 @@ update_ai() {
   else
     log_warn "AI tools updated with $rc failure(s)"
   fi
+  return "$rc"
 }
 
 _update_ai_tools_wrapper() {
@@ -147,4 +149,5 @@ reinstall_ai() {
     log_warn "AI tools reinstalled with $rc failure(s)"
   fi
   echo
+  return "$rc"
 }

@@ -25,6 +25,7 @@ install_network() {
   fi
   separator
   echo
+  return "$rc"
 }
 
 uninstall_network() {
@@ -47,6 +48,7 @@ uninstall_network() {
   else
     log_warn "$rc network tool(s) failed to uninstall"
   fi
+  return "$rc"
 }
 
 update_network() {
@@ -65,6 +67,7 @@ update_network() {
   else
     log_warn "$rc network tool(s) failed to update"
   fi
+  return "$rc"
 }
 
 reinstall_network() {
@@ -85,4 +88,5 @@ reinstall_network() {
   fi
   separator
   echo
+  return "$rc"
 }

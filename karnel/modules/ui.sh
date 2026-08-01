@@ -39,8 +39,9 @@ setup_ui() {
 	list_item "Font: Meslo Nerd Font"
 	list_item "Banner: Karnel startup banner"
 	echo
-	log_warn "Please restart Termux to apply all changes"
-	echo
+  log_warn "Please restart Termux to apply all changes"
+  echo
+  return "$rc"
 }
 
 _setup_ui_wrapper() {
@@ -74,6 +75,7 @@ uninstall_ui() {
 	echo
 	log_warn "Please restart Termux to apply changes"
 	echo
+	return "$rc"
 }
 
 _uninstall_ui_wrapper() {
@@ -101,6 +103,7 @@ update_ui() {
 	fi
 	separator
 	echo
+	return "$rc"
 }
 
 _update_ui_wrapper() {
@@ -132,8 +135,9 @@ reinstall_ui() {
   list_item "Font: Meslo Nerd Font"
   list_item "Banner: Karnel startup banner"
   echo
-  log_warn "Please restart Termux to apply all changes"
-  echo
+	log_warn "Please restart Termux to apply all changes"
+	echo
+	return "$rc"
 }
 
 _reinstall_ui_wrapper() {

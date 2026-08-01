@@ -283,6 +283,14 @@ _reinstall_specific_tools() {
         reinstall_openspec
         case $? in 0) ((reinstalled_count++));; 1) ((failed_count++));; esac
         ;;
+      supercode-cli)
+        reinstall_supercode_cli
+        case $? in 0) ((reinstalled_count++));; 1) ((failed_count++));; esac
+        ;;
+      puter)
+        reinstall_puter
+        case $? in 0) ((reinstalled_count++));; 1) ((failed_count++));; esac
+        ;;
       copilot-termux)
         reinstall_copilot_termux
         case $? in 0) ((reinstalled_count++));; 1) ((failed_count++));; esac
