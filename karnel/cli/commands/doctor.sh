@@ -594,11 +594,20 @@ doctor_termux() {
   separator_section "AI Tools Installed"
   echo
 
-  local -a ai_cmds=("opencode" "claude" "gemini" "codex" "qwen" "vibe" "mimo" "hermes" "kimi" "ollama" "freebuff" "pi" "agy" "mmx" "gentle-ai" "gga" "engram" "codegraph" "kilocode" "kiro" "crush" "odysseus" "openclaude" "openclaw" "command-code" "kimchi" "cline" "omni-route" "ctx7" "openspec" "copilot" "supercode" "puter")
+  local registry_file="$KARNEL_PATH/tools/ai/all.sh"
+  local -a ai_cmds=()
+  local registry_line registry_entry binaries
+  while IFS= read -r registry_line; do
+    registry_entry="${registry_line#*\"}"
+    registry_entry="${registry_entry%\"*}"
+    binaries="${registry_entry##*:}"
+    ai_cmds+=("$binaries")
+  done < <(grep -E '^[[:space:]]*"[^:]+:[^:]+:[^"]+"' "$registry_file")
   local ai_count=0
 
   for cmd in "${ai_cmds[@]}"; do
-    if command -v "$cmd" &>/dev/null; then
+    IFS=, read -r -a binaries <<< "$cmd"
+    if command -v "${binaries[0]}" &>/dev/null || { [[ ${#binaries[@]} -gt 1 ]] && command -v "${binaries[1]}" &>/dev/null; }; then
       log_success "$cmd: installed"
       ((ai_count++))
     fi
@@ -615,14 +624,15 @@ doctor_termux() {
   fi
 
   # Registry consistency check
-  local registry_file="$KARNEL_PATH/tools/ai/all.sh"
   if [[ -f "$registry_file" ]]; then
-    local registered_tools
-    registered_tools=$(grep -cE '^[[:space:]]*"[^:]+:[^:]+:[^"]+"' "$registry_file" 2>/dev/null || echo 0)
+    local registered_tools=${#ai_cmds[@]}
     local installed_ai
     installed_ai=0
     for cmd in "${ai_cmds[@]}"; do
-      command -v "$cmd" &>/dev/null && ((installed_ai++))
+      IFS=, read -r -a binaries <<< "$cmd"
+      if command -v "${binaries[0]}" &>/dev/null || { [[ ${#binaries[@]} -gt 1 ]] && command -v "${binaries[1]}" &>/dev/null; }; then
+        ((installed_ai++))
+      fi
     done
     log_info "AI registry: $registered_tools tools | Installed: $installed_ai"
   fi

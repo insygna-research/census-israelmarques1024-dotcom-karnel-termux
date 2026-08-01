@@ -410,17 +410,17 @@ karnel pg shell                      # Open psql console
 
 ## karnel init — Project Templates
 
-Create pre-configured projects in seconds:
+Configure existing projects in seconds:
 
 ```bash
-cd my-app && karnel init next         # Next.js + TypeScript + Tailwind
+cd my-next-app && karnel init next    # Next.js + TypeScript + Tailwind
 cd my-api && karnel init express      # Express + TypeORM
 cd backend && karnel init nest        # NestJS + authentication
 ```
 
 | Template | Description |
 |----------|-------------|
-| `next` | Next.js with Turbopack, TypeScript, Tailwind, React Query, Zustand |
+| `next` | Next.js with webpack, TypeScript, Tailwind, React Query, Zustand |
 | `react` | React + Vite with modern structure |
 | `express` | Express API with TypeScript + TypeORM + migrations |
 | `nest` | NestJS with TypeORM and JWT auth |
@@ -459,12 +459,11 @@ Platform CLIs are installed automatically.
 
 ## karnel open
 
-Open documentation for any module or tool in browser:
+Open documentation for any module in browser:
 
 ```bash
 karnel open ai                        # Open AI module docs
 karnel open db                        # Open DB module docs
-karnel open ai --opencode             # Open OpenCode docs on site
 ```
 
 Documentation loads from https://karneltermux.vercel.app.

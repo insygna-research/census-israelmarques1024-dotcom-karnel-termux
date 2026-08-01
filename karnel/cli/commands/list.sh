@@ -264,6 +264,8 @@ _list_dev() {
   table_row "Shfmt" "--shfmt" "$(_check_pkg "shfmt")"
   table_row "Make" "--make" "$(_check_pkg "make")"
   table_row "Udocker" "--udocker" "$(_check_pkg "udocker")"
+  table_row "OpenSSH" "--openssh" "$(_check_pkg "openssh")"
+  table_row "Tmux" "--tmux" "$(_check_pkg "tmux")"
   table_row "Snyk" "--snyk" "$(_check_cmd "snyk")"
   table_end
 
@@ -291,7 +293,7 @@ _list_games() {
   table_end
 
   echo
-  log_info "Install specific: ${D_CYAN}karnel install games --buzz --ctf-god${NC}"
+  log_info "Install specific: ${D_CYAN}karnel install games --buzz --ctfgod${NC}"
   log_info "Install all: ${D_CYAN}karnel install games${NC}"
   echo
 }

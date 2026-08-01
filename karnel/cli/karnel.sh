@@ -95,7 +95,7 @@ karnel_help() {
   printf "    ${D_CYAN}%-18s${NC} %s\n" "update [module]" "Update modules or framework"
   printf "    ${D_CYAN}%-18s${NC} %s\n" "upgrade" "Upgrade Karnel framework itself"
   printf "    ${D_CYAN}%-18s${NC} %s\n" "version" "Show current version"
-  printf "    ${D_CYAN}%-18s${NC} %s\n" "voice [kilo,opencode,codex,mimocode,openclaude,pi,crush,kiro]" "Speech-to-agent via microphone"
+  printf "    ${D_CYAN}%-18s${NC} %s\n" "voice [agent]" "Speech-to-agent via microphone (run 'karnel voice --help' for agents)"
   echo
   separator_section "Quick Start"
   echo
@@ -386,8 +386,7 @@ _tui_list_menu() {
     "osint" "OSINT Tools" \
       "voice" "Voice Commands" \
       "plugin" "Plugin System" \
-      "security" "Security Tools" \
-      "supabase" "Supabase CLI" \
+    "security" "Security Tools" \
     "back" "Back to Main Menu")
   local es=$?
   if [[ $es -ne 0 || "$choice" == "back" || -z "$choice" ]]; then
@@ -690,8 +689,8 @@ _tui_install_menu() {
     target=$(_dialog_menu "Install Modules" "Select target module to install:" \
       "ai" "AI Tools (OpenCode, Claude, Ollama, etc.)" \
       "auto" "Automation Tools (n8n)" \
-      "db" "Databases (PostgreSQL, MariaDB, SQLite, MongoDB)" \
-      "deploy" "Deploy CLIs (Vercel, Railway, Netlify)" \
+      "db" "Databases (PostgreSQL, MariaDB, SQLite, MongoDB, Redis)" \
+      "deploy" "Deploy CLIs (Vercel, Railway, Netlify, Supabase)" \
       "dev" "Development Tools (GitHub CLI, fzf, bat, etc.)" \
       "editor" "Code Editor (code-server)" \
       "games" "Games (Buzz, CTF God, Detective, etc.)" \
@@ -699,9 +698,11 @@ _tui_install_menu() {
       "npm" "Node.js Global npm Packages" \
       "osint" "OSINT Tools (Robin — Dark Web + LLM)" \
       "network" "Network Tools (Dark Web, DedSec Network)" \
+      "security" "Security Tools (Nmap, Hydra, SQLMap, etc.)" \
       "utils" "Utility Scripts (Fconv, Notes, QR Code)" \
       "shell" "ZSH + Oh My Zsh + Plugins" \
       "ui" "Termux UI (font, cursor, extra-keys, banner)" \
+      "plugin" "Plugins from the official registry" \
       "supabase" "Supabase CLI" \
       "voice" "Speech-to-Agent via microphone" \
       "back" "Back to Main Menu")
@@ -750,6 +751,7 @@ _tui_install_checklist() {
         "mariadb" "MariaDB" OFF
         "sqlite" "SQLite" OFF
         "mongodb" "MongoDB" OFF
+        "redis" "Redis" OFF
       )
       ;;
     ai)
@@ -819,24 +821,20 @@ _tui_install_checklist() {
         "tmux" "Tmux" OFF
         "openssh" "OpenSSH" OFF
         "snyk" "Snyk" OFF
-        "httptmux" "Httptmux" OFF
-        "zork" "Zork" OFF
-        "fconv" "File Converter" OFF
-        "filecheck" "File Checker" OFF
-        "websites" "Websites Creator" OFF
-        "notes" "Smart Notes" OFF
-        "treex" "Tree Explorer" OFF
-        "passman" "Password Master" OFF
-        "applaunch" "App Launcher" OFF
-        "splash" "Loading Screen" OFF
       )
       ;;
     shell)
       opts=(
-        "zsh" "ZSH shell" OFF
-        "ohmyzsh" "Oh My Zsh" OFF
-        "theme" "Powerlevel10k theme" OFF
-        "plugins" "Plugins (autosuggest, etc.)" OFF
+        "powerlevel10k" "Powerlevel10k" OFF
+        "zsh-defer" "Zsh Defer" OFF
+        "zsh-autosuggestions" "Zsh Autosuggestions" OFF
+        "zsh-syntax-highlighting" "Zsh Syntax Highlighting" OFF
+        "history-substring" "History Substring Search" OFF
+        "zsh-completions" "Zsh Completions" OFF
+        "fzf-tab" "Fzf Tab" OFF
+        "you-should-use" "You Should Use" OFF
+        "zsh-autopair" "Zsh Autopair" OFF
+        "better-npm" "Better NPM" OFF
       )
       ;;
     ui)

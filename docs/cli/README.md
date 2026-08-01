@@ -35,6 +35,8 @@ karnel install <module> --tool1 --tool2  # Install specific tools only
 | `utils`   | fconv, filecheck, notes, qrcode, zork, httptmux (11 scripts) |
 | `osint`   | Robin v2.8 — dark web OSINT via Tor + LLM |
 | `voice`   | Speech-to-agent via Termux:API |
+| `security`| Nmap, Hydra, SQLMap, Metasploit, and 26 other tools |
+| `plugin`  | Install plugins from the official registry |
 
 ### Per-module tool flags
 
@@ -53,6 +55,7 @@ karnel install <module> --tool1 --tool2  # Install specific tools only
 | `games`   | `--buzz`, `--ctfgod`, `--detective`, `--pet-friends`, `--tamagotchi`, `--arcade` |
 | `network` | `--dark`, `--dedsec-network` |
 | `utils`   | `--fconv`, `--filecheck`, `--websites`, `--notes`, `--treex`, `--passman`, `--applaunch`, `--splash`, `--httptmux`, `--zork`, `--qrcode` |
+| `security`| Run `karnel list security` for the 30 supported tool flags |
 
 ```bash
 karnel install ai --opencode --ollama
@@ -162,7 +165,6 @@ karnel show <module> --<tool>      # Show README for a specific tool
 karnel show <module>               # List all tools in the module
 karnel show backup                 # Show backup documentation
 karnel show restore                # Show restore documentation
-karnel show all --<tool>           # Search for tool across all modules
 ```
 
 Renders the tool's `README.md` with `glow` (if installed), `pygmentize`, or
@@ -503,11 +505,11 @@ karnel ia routes
 
 ---
 
-## init — Project scaffolding
+## init — Project configuration
 
 ```bash
 karnel init <template>
-karnel init                          # Auto-detect from existing files
+karnel init                          # Auto-detect an existing project
 ```
 
 | Template | Project type |
@@ -524,7 +526,7 @@ Auto-detection checks for `package.json`, `requirements.txt`, `go.mod`,
 `Cargo.toml`.
 
 ```bash
-cd my-app && karnel init next
+cd my-next-app && karnel init next
 cd my-api && karnel init express
 cd . && karnel init                   # Auto-detect
 ```
@@ -542,12 +544,14 @@ karnel deploy <tool> [args...]
 | `vercel` | Vercel (passes remaining args to `vercel`) |
 | `railway` | Railway |
 | `netlify` | Netlify |
+| `supabase` | Supabase |
 
 ```bash
 karnel deploy vercel
 karnel deploy vercel --prod
 karnel deploy railway
 karnel deploy netlify
+karnel deploy supabase
 ```
 
 ---
@@ -630,7 +634,7 @@ Creates `$KARNEL_DATA/backups/termux-<timestamp>.tar.gz` with SHA256 checksum.
 
 | Flag | Description |
 |------|-------------|
-| `--cloud` | Upload to Google Drive via `rclone` (remote named `karnel`) |
+| `--cloud` | Upload via `rclone` (remote named `karnel`) |
 | `--help`, `-h` | Show help |
 
 ```bash
@@ -663,7 +667,7 @@ Verifies SHA256 checksum automatically if available.
 | Argument | Description |
 |----------|-------------|
 | `<file>` | Path to a specific backup file |
-| `--cloud` | Download and restore from Google Drive |
+| `--cloud` | Download and restore via the `karnel` rclone remote |
 | `--help`, `-h` | Show help |
 
 ```bash
@@ -722,8 +726,11 @@ Prints the main help screen with all commands and module targets.
 
 ## Module targets reference
 
-These modules work with `install`, `uninstall`, `reinstall`, `update`, `list`,
-`show`, and `open`:
+The main tool modules work with `install`, `uninstall`, `reinstall`, `update`,
+`list`, `show`, and `open`:
 
 `ai` `auto` `db` `deploy` `dev` `editor` `games` `lang` `network` `npm`
-`osint` `security` `plugin` `shell` `ui` `utils` `voice`
+`osint` `security` `shell` `ui` `utils` `voice`
+
+`plugin` works with `install`, `uninstall`, `reinstall`, `update`, `list`, and
+`open`, but does not expose tool documentation through `show`.

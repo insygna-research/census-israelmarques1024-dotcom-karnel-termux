@@ -22,7 +22,6 @@ show_main() {
     list_item "karnel show osint --robin"
     list_item "karnel show backup              Show backup docs"
     list_item "karnel show restore             Show restore docs"
-    list_item "karnel show all --<tool>"
 		echo
 		log_info "Run ${D_CYAN}karnel list <module>${NC} to see available tools"
 		echo

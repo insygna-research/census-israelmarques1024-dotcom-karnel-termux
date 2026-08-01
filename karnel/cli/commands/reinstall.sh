@@ -169,6 +169,7 @@ _reinstall_full_module() {
   *)
     log_warn "Unknown reinstall target: $target"
     echo "Run 'karnel reinstall' to see available targets"
+    return 1
     ;;
   esac
 }
@@ -292,6 +293,30 @@ _reinstall_specific_tools() {
         ;;
       puter)
         reinstall_puter
+        case $? in 0) ((reinstalled_count++));; 1) ((failed_count++));; esac
+        ;;
+      qoder)
+        reinstall_qoder
+        case $? in 0) ((reinstalled_count++));; 1) ((failed_count++));; esac
+        ;;
+      ampcode)
+        reinstall_ampcode
+        case $? in 0) ((reinstalled_count++));; 1) ((failed_count++));; esac
+        ;;
+      cursor-cli)
+        reinstall_cursor_cli
+        case $? in 0) ((reinstalled_count++));; 1) ((failed_count++));; esac
+        ;;
+      oh-my-pi)
+        reinstall_oh_my_pi
+        case $? in 0) ((reinstalled_count++));; 1) ((failed_count++));; esac
+        ;;
+      goose)
+        reinstall_goose
+        case $? in 0) ((reinstalled_count++));; 1) ((failed_count++));; esac
+        ;;
+      droid)
+        reinstall_droid
         case $? in 0) ((reinstalled_count++));; 1) ((failed_count++));; esac
         ;;
       copilot-termux)
@@ -822,9 +847,13 @@ _reinstall_specific_tools() {
   utils)
     _batch_tool_action "utils" "reinstall" "${tools[@]}"
     ;;
+  security|deploy)
+    _batch_tool_action "$module" "reinstall" "${tools[@]}"
+    ;;
   *)
     log_warn "Unknown reinstall target: $module"
     echo "Run 'karnel reinstall' to see available targets"
+    return 1
     ;;
   esac
 }
