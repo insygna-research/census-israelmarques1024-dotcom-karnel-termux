@@ -29,7 +29,7 @@ _freebuff_proot_ubuntu() {
 
 _get_latest_freebuff_version() {
   curl -fsSL https://api.github.com/repos/CodebuffAI/codebuff-community/releases/latest |
-    grep '"tag_name":' | sed -E 's/.*"freebuff-v([^"]+)".*/\1/'
+    grep '"tag_name":' | sed -E 's/.*"tag_name":\s*"v([0-9]+\.[0-9]+\.[0-9]+)".*/\1/'
 }
 
 _freebuff_install_deps_native() {
@@ -86,8 +86,8 @@ _download_freebuff_binary_impl() {
 
   mkdir -p "$FREEBUFF_DATA_DIR"
 
-  local tarball="freebuff-linux-arm64.tar.gz"
-  local download_url="https://codebuff.com/api/releases/download/$latest_version/$tarball"
+  local tarball="codebuff-linux-arm64.tar.gz"
+  local download_url="https://github.com/CodebuffAI/codebuff-community/releases/download/v${latest_version}/${tarball}"
 
   if ! curl -fsSL "$download_url" -o "$FREEBUFF_DATA_DIR/$tarball" &>>"$LOG_FILE"; then
     log_error "Failed to download Freebuff binary"
@@ -101,11 +101,12 @@ _download_freebuff_binary_impl() {
 
   rm -f "$FREEBUFF_DATA_DIR/$tarball"
 
-  if [ ! -f "$FREEBUFF_DATA_DIR/freebuff" ]; then
+  if [ ! -f "$FREEBUFF_DATA_DIR/codebuff" ]; then
     log_error "Freebuff binary not found after extraction"
     return 1
   fi
 
+  mv -f "$FREEBUFF_DATA_DIR/codebuff" "$FREEBUFF_DATA_DIR/freebuff"
   chmod +x "$FREEBUFF_DATA_DIR/freebuff"
   return 0
 }
@@ -161,11 +162,12 @@ _install_freebuff_proot_impl() {
     export SHELL=/bin/bash
     export TMPDIR=/tmp
     export HOME=/root
-    LATEST=$(curl -fsSL https://api.github.com/repos/CodebuffAI/codebuff-community/releases/latest | grep '"'"'tag_name'"'"' | sed -E '"'"'s/.*"freebuff-v([^"]+)".*/\1/'"'"')
+    LATEST=$(curl -fsSL https://api.github.com/repos/CodebuffAI/codebuff-community/releases/latest | grep '"'"'tag_name'"'"' | sed -E '"'"'s/.*"tag_name":\s*"v([0-9]+\.[0-9]+\.[0-9]+)".*/\1/'"'"')
     TARBALL=$(mktemp /tmp/freebuff.XXXXXX.tar.gz)
-    curl -fsSL "https://codebuff.com/api/releases/download/${LATEST}/freebuff-linux-arm64.tar.gz" -o "$TARBALL"
+    curl -fsSL "https://github.com/CodebuffAI/codebuff-community/releases/download/v${LATEST}/codebuff-linux-arm64.tar.gz" -o "$TARBALL"
     mkdir -p /root/.freebuff
     tar -zxf "$TARBALL" -C /root/.freebuff
+    mv -f /root/.freebuff/codebuff /root/.freebuff/freebuff
     rm -f "$TARBALL"
     chmod +x /root/.freebuff/freebuff
   ' &>>"$LOG_FILE"
@@ -277,11 +279,12 @@ _update_freebuff_impl() {
     export SHELL=/bin/bash
     export TMPDIR=/tmp
     export HOME=/root
-    LATEST=$(curl -fsSL https://api.github.com/repos/CodebuffAI/codebuff-community/releases/latest | grep '"'"'tag_name'"'"' | sed -E '"'"'s/.*"freebuff-v([^"]+)".*/\1/'"'"')
+    LATEST=$(curl -fsSL https://api.github.com/repos/CodebuffAI/codebuff-community/releases/latest | grep '"'"'tag_name'"'"' | sed -E '"'"'s/.*"tag_name":\s*"v([0-9]+\.[0-9]+\.[0-9]+)".*/\1/'"'"')
     TARBALL=$(mktemp /tmp/freebuff.XXXXXX.tar.gz)
-    curl -fsSL "https://codebuff.com/api/releases/download/${LATEST}/freebuff-linux-arm64.tar.gz" -o "$TARBALL"
+    curl -fsSL "https://github.com/CodebuffAI/codebuff-community/releases/download/v${LATEST}/codebuff-linux-arm64.tar.gz" -o "$TARBALL"
     mkdir -p /root/.freebuff
     tar -zxf "$TARBALL" -C /root/.freebuff
+    mv -f /root/.freebuff/codebuff /root/.freebuff/freebuff
     rm -f "$TARBALL"
     chmod +x /root/.freebuff/freebuff
   ' &>>"$LOG_FILE"
