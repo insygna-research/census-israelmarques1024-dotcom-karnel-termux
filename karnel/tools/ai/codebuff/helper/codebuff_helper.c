@@ -21,7 +21,7 @@ int main(int argc, char** argv) {
     char* dir = dirname(exec_path);
 
     char* loader = "/data/data/com.termux/files/usr/glibc/lib/ld-linux-aarch64.so.1";
-    char real_bin[] = "/data/data/com.termux/files/home/.local/share/karnel-data/freebuff/freebuff";
+    char real_bin[] = "/data/data/com.termux/files/home/.local/share/karnel-data/codebuff/codebuff";
     char lib_path[] = "/data/data/com.termux/files/usr/glibc/lib";
 
     char** new_argv = malloc((argc + 4) * sizeof(char*));

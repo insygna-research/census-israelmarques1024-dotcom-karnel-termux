@@ -273,7 +273,8 @@ karnel install ai --opencode --ollama         # Install specific agents
 | **Hermes Agent** | `--hermes-agent` | Nous Research self-improving agent |
 | **Kimi Code** | `--kimi-code` | Kimi Code CLI |
 | **Command Code** | `--command-code` | Agent that learns your style |
-| **Freebuff** | `--freebuff` | Free community agent |
+| **Codebuff** | `--codebuff` | Free community coding agent |
+| **Freebuff** | `--freebuff` | Free AI coding agent |
 | **Kilo Code CLI** | `--kilocode-cli` | Native glibc CLI for Termux |
 | **Kiro CLI** | `--kiro` | AWS AI coding assistant |
 | **Crush CLI** | `--crush` | Charm AI agents CLI |

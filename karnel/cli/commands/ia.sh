@@ -217,6 +217,17 @@ ia_sessions() {
 		done
 	fi
 
+	# Codebuff sessions
+	if [[ -d "$HOME/.codebuff" ]]; then
+		for f in "$HOME/.codebuff"/*.json; do
+			[[ -f "$f" ]] || continue
+			local basename; basename=$(basename "$f")
+			local ts; ts=$(stat -c %Y "$f" 2>/dev/null || echo "unknown")
+			local readable_ts; readable_ts=$(date -d "@$ts" +%Y%m%d_%H%M%S 2>/dev/null || echo "unknown")
+			sessions+=("[codebuff]|$readable_ts|$basename")
+		done
+	fi
+
 	# Freebuff sessions
 	if [[ -d "$HOME/.freebuff" ]]; then
 		for f in "$HOME/.freebuff"/*.json; do
@@ -431,7 +442,7 @@ ia_routes() {
 	local -a routes=()
 
 	# Collect all available AI CLIs (em sincronia com AI_TOOLS_REGISTRY em tools/ai/all.sh)
-	for cmd in qwen gemini claude vibe openclaude openclaw ollama codex opencode mimo engram codegraph pi agy mmx gentle-ai gga hermes kimi command-code freebuff kilocode kiro cline crush odysseus kimchi omni-route ctx7 openspec copilot amp cursor omp goose droid supercode puter; do
+	for cmd in qwen gemini claude vibe openclaude openclaw ollama codex opencode mimo engram codegraph pi agy mmx gentle-ai gga hermes kimi command-code codebuff freebuff kilocode kiro cline crush odysseus kimchi omni-route ctx7 openspec copilot amp cursor omp goose droid supercode puter; do
 		if command -v "$cmd" &>/dev/null; then
 			local path
 			path=$(command -v "$cmd")

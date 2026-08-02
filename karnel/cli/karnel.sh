@@ -781,6 +781,7 @@ _tui_install_checklist() {
         "hermes-agent" "Hermes Agent" OFF
         "kimi-code" "Kimi Code" OFF
         "command-code" "Command Code" OFF
+        "codebuff" "Codebuff" OFF
         "freebuff" "Freebuff" OFF
         "crush" "Crush CLI" OFF
         "odysseus" "Odysseus" OFF

@@ -22,7 +22,7 @@ proot-distro login \
 	"${ENV_ARGS[@]}" \
 	--termux-home \
 	--shared-tmp \
-	--bind "$UBUNTU_ROOTFS/root/.freebuff:/root/.freebuff" \
+	--bind "$UBUNTU_ROOTFS/root/.codebuff:/root/.codebuff" \
 	--work-dir $PWD \
 	ubuntu \
-	-- /root/.freebuff/freebuff "$@"
+	-- /root/.codebuff/codebuff "$@"

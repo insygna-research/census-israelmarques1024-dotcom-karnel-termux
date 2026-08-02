@@ -189,6 +189,7 @@ _list_ai() {
   table_row "Hermes Agent" "--hermes-agent" "hermes" "$(_check_cmd "hermes")"
   table_row "Kimi Code" "--kimi-code" "kimi" "$(_check_cmd "kimi")"
   table_row "Command Code" "--command-code" "command-code" "$(_check_cmd "command-code")"
+  table_row "Codebuff" "--codebuff" "codebuff" "$(_check_cmd "codebuff")"
   table_row "Freebuff" "--freebuff" "freebuff" "$(_check_cmd "freebuff")"
   table_row "Kilo Code CLI" "--kilocode-cli" "kilocode,kilo" "$(_check_cmd_any "kilocode,kilo")"
   table_row "Kiro CLI" "--kiro" "kiro,kiro-cli" "$(_check_cmd_any "kiro,kiro-cli")"

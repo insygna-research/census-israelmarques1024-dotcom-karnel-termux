@@ -48,6 +48,7 @@ AI_TOOLS_REGISTRY=(
   "hermes-agent:Hermes Agent:hermes"
   "kimi-code:Kimi Code:kimi"
   "command-code:Command Code:command-code"
+  "codebuff:Codebuff:codebuff"
   "freebuff:Freebuff:freebuff"
   "kilocode-cli:Kilo Code CLI:kilocode,kilo"
   "kiro:Kiro CLI:kiro,kiro-cli"
