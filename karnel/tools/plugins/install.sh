@@ -478,10 +478,14 @@ _plugin_validate_declared_commands() {
     fi
   done
 
-  for command_file in "$canonical_commands_dir"/*.sh; do
+  for command_file in "$canonical_commands_dir"/* "$canonical_commands_dir"/.[!.]* "$canonical_commands_dir"/..?*; do
     [[ -e "$command_file" ]] || continue
     if [[ ! -f "$command_file" || -L "$command_file" ]]; then
       log_error "Commands directory contains an unsafe non-regular entry: $command_file"
+      return 1
+    fi
+    if [[ "$command_file" != *.sh ]]; then
+      log_error "Commands directory contains a non-command file: $command_file"
       return 1
     fi
     file_name="${command_file##*/}"
@@ -647,9 +651,9 @@ _plugin_registry_errors() {
     def safe_repo:
       (type == "string") and test("^[A-Za-z0-9][A-Za-z0-9-]{0,38}/[A-Za-z0-9][A-Za-z0-9._-]{0,99}$") and (contains("..") | not) and (endswith(".git") | not);
     def safe_ref:
-      (type == "string") and test("^[A-Za-z0-9][A-Za-z0-9._/-]{0,127}$") and (contains("..") | not) and (contains("//") | not) and (endswith("/") | not);
+      (type == "string") and test("^[A-Za-z0-9][A-Za-z0-9._/-]{0,127}$") and (contains("..") | not) and (contains("//") | not) and (endswith("/") | not) and (endswith(".lock") | not);
     def safe_path:
-      (type == "string") and test("^[A-Za-z0-9][A-Za-z0-9._/-]{0,127}$") and (contains("..") | not) and (contains("//") | not) and (endswith("/") | not) and (startswith(".git") | not);
+      . == "." or ((type == "string") and test("^[A-Za-z0-9][A-Za-z0-9._/-]{0,127}$") and (contains("..") | not) and (contains("//") | not) and (endswith("/") | not) and (startswith(".git") | not));
     def safe_license:
       type == "string" and test("^[A-Za-z0-9][A-Za-z0-9.-]{0,63}$");
     def safe_checksum:

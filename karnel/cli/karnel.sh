@@ -141,7 +141,7 @@ karnel_help() {
   echo
   list_item "Run ${D_CYAN}karnel <command>${NC} for command-specific help"
   list_item "Example: ${D_CYAN}karnel pg${NC}, ${D_CYAN}karnel init${NC}"
-  list_item "Docs: ${D_CYAN}karnel open${NC} — israel marques 🇧🇷 (12y)"
+  list_item "Docs: ${D_CYAN}karnel open karnel${NC} — israel marques 🇧🇷 (12y)"
   echo
 }
 
@@ -244,19 +244,19 @@ _tui_main_menu() {
       "pg" "PostgreSQL Database Manager" \
       "init" "Project Initializer" \
       "deploy" "Deploy Projects" \
-      "voice" "Speech-to-Agent" \
-      "ia" "AI Agent Manager" \
-      "robin" "Dark Web OSINT" \
-      "supabase" "Supabase CLI Manager" \
+      "voice" "Speech-to-Agent Help" \
+      "ia" "AI Agent Manager Help" \
+      "robin" "Dark Web OSINT Help" \
+      "supabase" "Supabase CLI Help" \
       "doctor" "Run Diagnostics (termux/code)" \
       "search" "Search Tools & Memories" \
-      "show" "Show Tool Documentation" \
+      "show" "Show Documentation Help" \
       "cleanup" "Clean caches and temp files" \
       "status" "Quick System Overview" \
       "upgrade" "Upgrade Karnel Framework" \
-      "update" "Update Karnel" \
-      "reinstall" "Reinstall Modules" \
-      "uninstall" "Remove Modules" \
+      "update" "Update Help" \
+      "reinstall" "Reinstall Help" \
+      "uninstall" "Remove Help" \
       "help" "Show Help Documentation" \
       "exit" "Exit")
     

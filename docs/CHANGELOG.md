@@ -1,5 +1,18 @@
 # Documentation Changelog
 
+## 4.13.6 - 2026-08-03
+
+### Fixes
+
+- Reject missing values for `karnel voice --lang` before argument parsing can
+  consume another option.
+- Harden plugin command validation by rejecting hidden, non-shell, symlinked,
+  and undeclared command entries.
+- Permit the documented root plugin path (`"path": "."`) in reviewed registry
+  entries while retaining traversal protection.
+- Clarified CLI help, deployment requirements, and site documentation so they
+  match current behavior.
+
 ## 4.13.5 - 2026-08-01
 
 ### Release hardening

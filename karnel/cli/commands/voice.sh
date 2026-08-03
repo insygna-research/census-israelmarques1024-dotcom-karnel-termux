@@ -61,7 +61,14 @@ voice_main() {
   # Parse all arguments: flags can appear anywhere
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --lang) lang="${2:-}"; shift 2 ;;
+      --lang)
+        if [[ -z "${2:-}" || "${2:-}" == -* ]]; then
+          log_error "--lang requires a language code"
+          return 1
+        fi
+        lang="$2"
+        shift 2
+        ;;
       --raw) skip_edit=true; shift ;;
       --no-clip) no_clip=true; shift ;;
       --help|-h) voice_help; return ;;

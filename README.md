@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/israelmarques1024-dotcom/karnel-termux">
-    <img src="https://img.shields.io/badge/version-4.13.5-0078D4?style=for-the-badge" alt="Version">
+    <img src="https://img.shields.io/badge/version-4.13.6-0078D4?style=for-the-badge" alt="Version">
   </a>
   <a href="https://www.npmjs.com/package/karnel-termux">
     <img src="https://img.shields.io/npm/v/karnel-termux?style=for-the-badge&logo=npm&color=cb3837" alt="npm">
@@ -436,7 +436,7 @@ cd backend && karnel init nest        # NestJS + authentication
 Manage environment variables securely:
 
 ```bash
-karnel env set OPENAI_API_KEY        # Add key (hidden input)
+karnel env set                       # Add key (hidden input)
 karnel env list                      # List variables
 karnel env ls                        # List variables
 ```
@@ -454,7 +454,7 @@ karnel deploy netlify                 # Deploy to Netlify
 karnel deploy supabase                # Deploy to Supabase
 ```
 
-Platform CLIs are installed automatically.
+Install a platform CLI first with `karnel install deploy --<tool>`.
 
 ---
 
