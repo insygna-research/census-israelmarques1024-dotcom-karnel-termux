@@ -443,6 +443,24 @@ test_active_operation_lock_prevents_concurrent_activation() {
   [[ -d "$PLUGINS_DIR/locked-plugin" ]]
 }
 
+test_active_operation_lock_prevents_removal() {
+  reset_state
+  create_plugin_repo locking removal removal-plugin 1.0.0 removal-command removal 0
+  write_registry "$(registry_entry locking removal)"
+  install_plugin removal-plugin >/dev/null
+  mkdir "$PLUGINS_DIR/.karnel-lock-removal-plugin"
+  printf '%s\n' "${BASHPID:-$$}" >"$PLUGINS_DIR/.karnel-lock-removal-plugin/pid"
+
+  if uninstall_plugin removal-plugin >/dev/null 2>&1; then
+    return 1
+  fi
+  [[ -d "$PLUGINS_DIR/removal-plugin" ]] || return 1
+
+  rm -rf -- "$PLUGINS_DIR/.karnel-lock-removal-plugin"
+  uninstall_plugin removal-plugin >/dev/null
+  [[ ! -e "$PLUGINS_DIR/removal-plugin" ]]
+}
+
 test_create_and_legacy_module_do_not_install_false_plugin() {
   reset_state
   local output
@@ -599,6 +617,7 @@ run_test "missing or malformed manifest rolls back" test_missing_and_malformed_m
 run_test "schema, integrity, compatibility, handlers, symlinks and native collisions are rejected" test_schema_integrity_compatibility_handlers_symlinks_and_native_collisions_are_rejected
 run_test "interrupted replacement and legacy reinstall recover safely" test_interrupted_replacement_and_legacy_reinstall_are_recovered
 run_test "active operation lock prevents concurrent activation" test_active_operation_lock_prevents_concurrent_activation
+run_test "active operation lock prevents concurrent removal" test_active_operation_lock_prevents_removal
 run_test "create works and legacy module does not clone Karnel" test_create_and_legacy_module_do_not_install_false_plugin
 run_test "path traversal is rejected" test_path_traversal_is_rejected
 run_test "plugin command collisions are blocked" test_command_collisions_are_blocked

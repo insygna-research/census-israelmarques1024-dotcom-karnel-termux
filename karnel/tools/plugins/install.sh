@@ -732,7 +732,7 @@ _plugin_fetch_registry() {
     return 1
   fi
 
-  if ! curl --fail --silent --show-error --location --connect-timeout 10 --max-time 30 --output "$destination" "$registry_url"; then
+  if ! curl --fail --silent --show-error --location --proto '=https' --proto-redir '=https' --connect-timeout 10 --max-time 30 --output "$destination" "$registry_url"; then
     log_error "Failed to fetch the plugin registry. Check your network connection."
     return 1
   fi
@@ -1270,25 +1270,35 @@ install_plugin() {
 
 uninstall_plugin() {
   local name="$1"
-  local plugin_dir
+  local plugin_dir status=0
 
   _plugin_validate_name "$name" || return 1
   _plugin_prepare_plugins_dir || return 1
-  _plugin_recover_interrupted_replacement "$name" || return 1
-  plugin_dir="$PLUGINS_DIR/$name"
+  _plugin_acquire_plugin_lock "$name" || return 1
 
-  if [[ ! -e "$plugin_dir" && ! -L "$plugin_dir" ]]; then
-    log_info "Plugin '$name' is not installed."
-    return 2
+  if ! _plugin_recover_interrupted_replacement "$name"; then
+    status=1
+  else
+    plugin_dir="$PLUGINS_DIR/$name"
+    if [[ ! -e "$plugin_dir" && ! -L "$plugin_dir" ]]; then
+      log_info "Plugin '$name' is not installed."
+      status=2
+    elif [[ -d "$plugin_dir" && ! -L "$plugin_dir" ]] && ! _plugin_validate_symlinks "$(_plugin_canonical_existing_path "$plugin_dir")"; then
+      status=1
+    else
+      log_info "Removing plugin '$name'..."
+      if _plugin_safe_remove_path "$plugin_dir"; then
+        log_success "Plugin '$name' removed."
+      else
+        status=1
+      fi
+    fi
   fi
 
-  if [[ -d "$plugin_dir" && ! -L "$plugin_dir" ]]; then
-    _plugin_validate_symlinks "$(_plugin_canonical_existing_path "$plugin_dir")" || return 1
+  if ! _plugin_release_plugin_lock && ((status == 0)); then
+    status=1
   fi
-
-  log_info "Removing plugin '$name'..."
-  _plugin_safe_remove_path "$plugin_dir" || return 1
-  log_success "Plugin '$name' removed."
+  return "$status"
 }
 
 _plugin_read_metadata_field() {
