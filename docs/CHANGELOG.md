@@ -1,5 +1,15 @@
 # Documentation Changelog
 
+## 4.13.7 - 2026-08-04
+
+### Plugin System
+
+- Registry entries may now share a repository when each uses a distinct plugin
+  path, enabling multiple reviewed plugins from the official registry source.
+- Plugin removal acquires the lifecycle lock before recovery and deletion,
+  preventing a concurrent update from restoring a removed plugin.
+- Registry downloads refuse HTTPS-to-HTTP redirect downgrades.
+
 ## 4.13.6 - 2026-08-03
 
 ### Fixes

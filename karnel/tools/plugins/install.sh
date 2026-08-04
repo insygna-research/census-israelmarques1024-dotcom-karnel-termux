@@ -690,7 +690,7 @@ _plugin_registry_errors() {
         if (($registry.plugins | type) != "array") then "plugins must be an array" else empty end,
         if (($registry.plugins | type) == "array" and ($registry.plugins | all(.[]; valid_plugin) | not)) then "one or more plugin entries violate registry schema v1" else empty end,
         if (($registry.plugins | type) == "array" and ($registry.plugins | map(.name) | length) != ($registry.plugins | map(.name) | unique | length)) then "plugin names must be unique" else empty end,
-        if (($registry.plugins | type) == "array" and ($registry.plugins | map(.repo) | length) != ($registry.plugins | map(.repo) | unique | length)) then "plugin repositories must be unique" else empty end
+        if (($registry.plugins | type) == "array" and ($registry.plugins | map(.repo + ":" + (.path // ".")) | length) != ($registry.plugins | map(.repo + ":" + (.path // ".")) | unique | length)) then "plugin repository paths must be unique" else empty end
       ]
     end | .[]
   ' "$registry"
