@@ -179,6 +179,7 @@ _install_specific_tools() {
   local module="$1"
   shift
   local -a tools=("$@")
+  local failed_count=0
 
   case "$module" in
   ai)
@@ -232,7 +233,7 @@ _install_specific_tools() {
               ((failed_count++))
             fi
             ;;
-          1)
+          *)
             ((failed_count++))
             ;;
            2)
@@ -288,6 +289,7 @@ _install_specific_tools() {
         ;;
       *)
         log_warn "Unknown database: --$tool"
+        ((failed_count++))
         ;;
       esac
     done
@@ -402,6 +404,7 @@ _install_specific_tools() {
         ;;
         *)
           log_warn "Unknown tool: --$tool"
+          ((failed_count++))
           ;;
       esac
     done
@@ -452,6 +455,7 @@ _install_specific_tools() {
         ;;
       *)
         log_warn "Unknown game: --$tool"
+        ((failed_count++))
         ;;
       esac
     done
@@ -522,6 +526,7 @@ _install_specific_tools() {
         ;;
       *)
         log_warn "Unknown node module: --$tool"
+        ((failed_count++))
         ;;
       esac
     done
@@ -580,6 +585,7 @@ _install_specific_tools() {
         ;;
       *)
         log_warn "Unknown language: --$tool"
+        ((failed_count++))
         ;;
       esac
     done
@@ -646,6 +652,7 @@ _install_specific_tools() {
         ;;
       *)
         log_warn "Unknown plugin: --$tool"
+        ((failed_count++))
         ;;
       esac
     done
@@ -684,6 +691,7 @@ _install_specific_tools() {
         ;;
       *)
         log_warn "Unknown editor component: --$tool"
+        ((failed_count++))
         ;;
       esac
     done
@@ -726,6 +734,7 @@ _install_specific_tools() {
         ;;
       *)
         log_warn "Unknown UI component: --$tool"
+        ((failed_count++))
         ;;
       esac
     done
@@ -756,6 +765,7 @@ _install_specific_tools() {
         ;;
       *)
         log_warn "Unknown automation tool: --$tool"
+        ((failed_count++))
         ;;
       esac
     done
@@ -798,6 +808,7 @@ _install_specific_tools() {
         ;;
       *)
         log_warn "Unknown deploy tool: --$tool"
+        ((failed_count++))
         ;;
       esac
     done
@@ -817,21 +828,21 @@ _install_specific_tools() {
   osint)
     import "@/tools/osint/robin/common"
     _robin_print_disclaimer
-    _batch_tool_action "osint" "install" "${tools[@]}"
+    _batch_tool_action "osint" "install" "${tools[@]}" || return 1
     ;;
   network)
-    _batch_tool_action "network" "install" "${tools[@]}"
+    _batch_tool_action "network" "install" "${tools[@]}" || return 1
     ;;
   utils)
-    _batch_tool_action "utils" "install" "${tools[@]}"
+    _batch_tool_action "utils" "install" "${tools[@]}" || return 1
     ;;
   security)
-    _batch_tool_action "security" "install" "${tools[@]}"
+    _batch_tool_action "security" "install" "${tools[@]}" || return 1
     ;;
   supabase)
     import "@/tools/deploy/supabase/install"
     install_supabase
-    case $? in 0) log_success "Supabase CLI installed";; 2) log_info "Supabase CLI already installed";; 1) log_error "Failed to install Supabase CLI";; esac
+    case $? in 0) log_success "Supabase CLI installed";; 2) log_info "Supabase CLI already installed";; *) log_error "Failed to install Supabase CLI"; return 1;; esac
     ;;
   *)
     log_warn "Unknown install target: $module"
@@ -839,4 +850,5 @@ _install_specific_tools() {
     return 1
   ;;
   esac
+  (( ${failed_count:-0} == 0 ))
 }

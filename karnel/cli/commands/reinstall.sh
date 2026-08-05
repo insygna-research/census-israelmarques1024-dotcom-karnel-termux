@@ -178,6 +178,7 @@ _reinstall_specific_tools() {
   local module="$1"
   shift
   local -a tools=("$@")
+  local failed_count=0
 
   case "$module" in
   ai)
@@ -349,6 +350,7 @@ _reinstall_specific_tools() {
         ;;
       *)
         log_warn "Unknown AI tool: --$tool"
+        ((failed_count++))
         ;;
       esac
     done
@@ -391,6 +393,7 @@ _reinstall_specific_tools() {
         ;;
       *)
         log_warn "Unknown database: --$tool"
+        ((failed_count++))
         ;;
       esac
     done
@@ -501,6 +504,7 @@ _reinstall_specific_tools() {
         ;;
         *)
           log_warn "Unknown tool: --$tool"
+          ((failed_count++))
           ;;
       esac
     done
@@ -547,6 +551,7 @@ _reinstall_specific_tools() {
         ;;
       *)
         log_warn "Unknown game: --$tool"
+        ((failed_count++))
         ;;
       esac
     done
@@ -613,6 +618,7 @@ _reinstall_specific_tools() {
         ;;
       *)
         log_warn "Unknown node module: --$tool"
+        ((failed_count++))
         ;;
       esac
     done
@@ -667,6 +673,7 @@ _reinstall_specific_tools() {
         ;;
       *)
         log_warn "Unknown language: --$tool"
+        ((failed_count++))
         ;;
       esac
     done
@@ -729,6 +736,7 @@ _reinstall_specific_tools() {
         ;;
       *)
         log_warn "Unknown plugin: --$tool"
+        ((failed_count++))
         ;;
       esac
     done
@@ -763,6 +771,7 @@ _reinstall_specific_tools() {
         ;;
       *)
         log_warn "Unknown editor component: --$tool"
+        ((failed_count++))
         ;;
       esac
     done
@@ -801,6 +810,7 @@ _reinstall_specific_tools() {
         ;;
       *)
         log_warn "Unknown UI component: --$tool"
+        ((failed_count++))
         ;;
       esac
     done
@@ -827,6 +837,7 @@ _reinstall_specific_tools() {
         ;;
       *)
         log_warn "Unknown automation tool: --$tool"
+        ((failed_count++))
         ;;
       esac
     done
@@ -843,16 +854,16 @@ _reinstall_specific_tools() {
   osint)
     import "@/tools/osint/robin/common"
     _robin_print_disclaimer
-    _batch_tool_action "osint" "reinstall" "${tools[@]}"
+    _batch_tool_action "osint" "reinstall" "${tools[@]}" || return 1
     ;;
   network)
-    _batch_tool_action "network" "reinstall" "${tools[@]}"
+    _batch_tool_action "network" "reinstall" "${tools[@]}" || return 1
     ;;
   utils)
-    _batch_tool_action "utils" "reinstall" "${tools[@]}"
+    _batch_tool_action "utils" "reinstall" "${tools[@]}" || return 1
     ;;
   security|deploy)
-    _batch_tool_action "$module" "reinstall" "${tools[@]}"
+    _batch_tool_action "$module" "reinstall" "${tools[@]}" || return 1
     ;;
   *)
     log_warn "Unknown reinstall target: $module"
@@ -860,4 +871,5 @@ _reinstall_specific_tools() {
     return 1
     ;;
   esac
+  (( ${failed_count:-0} == 0 ))
 }
