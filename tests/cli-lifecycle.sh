@@ -97,6 +97,18 @@ fi
 test -f "$KARNEL_CACHE/curl-installed"
 ((pass += 1))
 
+rm -f "$KARNEL_CACHE/curl-installed" "$KARNEL_CACHE/curl-args"
+mock_installer='printf "%s\n" "$*" > "$KARNEL_CACHE/curl-args"'
+mock_sum=$(printf '%s\n' "$mock_installer" | sha256sum | awk '{print $1}')
+if ! _update_try_curl >/dev/null 2>&1; then
+  printf 'FAIL: curl update did not pass the verified ref\n' >&2
+  exit 1
+fi
+test "$(cat "$KARNEL_CACHE/curl-args")" = "--ref $mock_tag"
+((pass += 1))
+
+mock_installer='touch "$KARNEL_CACHE/curl-installed"'
+mock_sum=$(printf '%s\n' "$mock_installer" | sha256sum | awk '{print $1}')
 rm -f "$KARNEL_CACHE/curl-installed"
 mock_sum="0000000000000000000000000000000000000000000000000000000000000000"
 if _update_try_curl >/dev/null 2>&1; then

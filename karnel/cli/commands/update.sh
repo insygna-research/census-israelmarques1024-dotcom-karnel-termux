@@ -252,7 +252,7 @@ _update_try_curl() {
 
   rm -f "$meta" "$sumfile"
 
-  if bash "$installer"; then
+  if bash "$installer" --ref "$tag"; then
     rm -f "$installer"
     log_success "Karnel-Termux updated via curl (v$tag)"
     return 0
