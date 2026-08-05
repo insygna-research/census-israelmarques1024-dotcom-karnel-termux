@@ -52,6 +52,7 @@ mkdir -p "$KARNEL_CACHE"
 
 mock_installer='touch "$KARNEL_CACHE/curl-installed"'
 mock_sum=$(printf '%s\n' "$mock_installer" | sha256sum | awk '{print $1}')
+mock_sumfile_line=""
 mock_tag="v4.14.0"
 mock_fail=0
 
@@ -75,7 +76,7 @@ curl() {
     printf '{"tag_name":"%s"}\n' "$mock_tag" > "$out"
     ;;
   *"/releases/download/"*"/karnel-termux-install.sh.sha256")
-    printf '%s  karnel-termux-install.sh\n' "$mock_sum" > "$out"
+    printf '%s\n' "${mock_sumfile_line:-$mock_sum  karnel-termux-install.sh}" > "$out"
     ;;
   *"/releases/download/"*"/karnel-termux-install.sh")
     printf '%s\n' "$mock_installer" > "$out"
@@ -107,6 +108,31 @@ test ! -f "$KARNEL_CACHE/curl-installed"
 
 rm -f "$KARNEL_CACHE/curl-installed"
 mock_sum=$(printf '%s\n' "$mock_installer" | sha256sum | awk '{print $1}')
+mock_sumfile_line="$mock_sum  unexpected-file"
+if _update_try_curl >/dev/null 2>&1; then
+  printf 'FAIL: checksum for an unexpected filename was accepted\n' >&2
+  exit 1
+fi
+test ! -f "$KARNEL_CACHE/curl-installed"
+((pass += 1))
+
+printf -v mock_sumfile_line '%s  karnel-termux-install.sh\n%s  karnel-termux-install.sh' "$mock_sum" "$mock_sum"
+if _update_try_curl >/dev/null 2>&1; then
+  printf 'FAIL: multiple checksum lines were accepted\n' >&2
+  exit 1
+fi
+test ! -f "$KARNEL_CACHE/curl-installed"
+((pass += 1))
+
+mock_sumfile_line="not-a-checksum  karnel-termux-install.sh"
+if _update_try_curl >/dev/null 2>&1; then
+  printf 'FAIL: malformed checksum line was accepted\n' >&2
+  exit 1
+fi
+test ! -f "$KARNEL_CACHE/curl-installed"
+((pass += 1))
+
+mock_sumfile_line=""
 mock_tag="v4.14.0-rc1"
 if _update_try_curl >/dev/null 2>&1; then
   printf 'FAIL: invalid release tag was not rejected\n' >&2
