@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 import "@/utils/log"
+import "@/utils/uninstall"
 import "@/utils/version"
 
 LOG_FILE="$KARNEL_CACHE/install_editor.log"
@@ -67,9 +68,14 @@ install_nvchad() {
 
 _uninstall_nvchad_impl() {
   if [[ -d "$HOME/.config/nvim" ]]; then
-    rm -rf ~/.config/nvim &>>"$LOG_FILE"
-    rm -rf ~/.local/state/nvim &>>"$LOG_FILE"
-    rm -rf ~/.local/share/nvim &>>"$LOG_FILE"
+    local remove_rc=0
+    confirm_remove_paths "NvChad" "$HOME/.config/nvim" "$HOME/.local/state/nvim" "$HOME/.local/share/nvim" &>>"$LOG_FILE" || remove_rc=$?
+    if [[ "$remove_rc" -eq 2 ]]; then
+      log_info "NvChad configuration preserved"
+    elif [[ "$remove_rc" -ne 0 ]]; then
+      log_error "Failed to remove NvChad configuration"
+      return 1
+    fi
     rm -rf "$NVCHAD_DIR" &>>"$LOG_FILE"
     log_success "NvChad uninstalled"
   else

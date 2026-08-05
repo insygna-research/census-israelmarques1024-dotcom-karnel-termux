@@ -2,6 +2,7 @@
 
 import "@/utils/log"
 import "@/utils/colors"
+import "@/utils/uninstall"
 
 ZSH_PLUGINS_DIR="$HOME/.zsh-plugins"
 OH_MY_ZSH_DIR="$HOME/.oh-my-zsh"
@@ -226,8 +227,12 @@ uninstall_oh_my_zsh() {
 
 	log_info "Uninstalling Oh My Zsh..."
 
-	if rm -rf "$OH_MY_ZSH_DIR" &>>"$LOG_FILE"; then
+	local remove_rc=0
+	confirm_remove_paths "Oh My Zsh" "$OH_MY_ZSH_DIR" &>>"$LOG_FILE" || remove_rc=$?
+	if [[ "$remove_rc" -eq 0 ]]; then
 		log_success "Oh My Zsh uninstalled"
+	elif [[ "$remove_rc" -eq 2 ]]; then
+		log_info "Oh My Zsh configuration preserved"
 	else
 		log_error "Failed to uninstall Oh My Zsh"
 		return 1
@@ -248,7 +253,7 @@ uninstall_shell() {
 
 	local rc=0
 	_uninstall_shell_plugins_wrapper || rc=$?
-	loading "Removing Oh My Zsh" uninstall_oh_my_zsh
+	uninstall_oh_my_zsh || rc=1
 
 	echo
 	separator
