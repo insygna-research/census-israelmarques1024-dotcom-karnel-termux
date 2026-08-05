@@ -60,11 +60,17 @@ _uninstall_history_substring_impl() {
     return 0
   fi
 
-  rm -rf "$ZSH_PLUGINS_DIR/zsh-history-substring-search"
+  local remove_rc=0
+  confirm_remove_paths "zsh-history-substring-search" "$ZSH_PLUGINS_DIR/zsh-history-substring-search" || remove_rc=$?
+  if [[ "$remove_rc" -eq 2 ]]; then
+    log_info "zsh-history-substring-search configuration and data preserved"
+    return 0
+  fi
+  return "$remove_rc"
 }
 
 uninstall_history_substring() {
-  loading "Uninstalling zsh-history-substring-search" _uninstall_history_substring_impl
+  _uninstall_history_substring_impl
 }
 
 _update_history_substring_impl() {

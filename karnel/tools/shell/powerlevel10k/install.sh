@@ -60,11 +60,17 @@ _uninstall_powerlevel10k_impl() {
     return 0
   fi
 
-  rm -rf "$ZSH_PLUGINS_DIR/powerlevel10k"
+  local remove_rc=0
+  confirm_remove_paths "powerlevel10k" "$ZSH_PLUGINS_DIR/powerlevel10k" || remove_rc=$?
+  if [[ "$remove_rc" -eq 2 ]]; then
+    log_info "powerlevel10k configuration and data preserved"
+    return 0
+  fi
+  return "$remove_rc"
 }
 
 uninstall_powerlevel10k() {
-  loading "Uninstalling powerlevel10k" _uninstall_powerlevel10k_impl
+  _uninstall_powerlevel10k_impl
 }
 
 _update_powerlevel10k_impl() {

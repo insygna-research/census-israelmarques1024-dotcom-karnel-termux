@@ -60,11 +60,17 @@ _uninstall_you_should_use_impl() {
     return 0
   fi
 
-  rm -rf "$ZSH_PLUGINS_DIR/zsh-you-should-use"
+  local remove_rc=0
+  confirm_remove_paths "zsh-you-should-use" "$ZSH_PLUGINS_DIR/zsh-you-should-use" || remove_rc=$?
+  if [[ "$remove_rc" -eq 2 ]]; then
+    log_info "zsh-you-should-use configuration and data preserved"
+    return 0
+  fi
+  return "$remove_rc"
 }
 
 uninstall_you_should_use() {
-  loading "Uninstalling zsh-you-should-use" _uninstall_you_should_use_impl
+  _uninstall_you_should_use_impl
 }
 
 _update_you_should_use_impl() {

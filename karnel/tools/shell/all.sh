@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 import "@/utils/log"
+import "@/utils/uninstall"
 
 LOG_FILE="$KARNEL_CACHE/install_shell.log"
 ZSH_PLUGINS_DIR="$HOME/.zsh-plugins"
@@ -38,7 +39,11 @@ _batch_shell() {
   for tool in "${SHELL_PLUGINS[@]}"; do
     func_name="${action}_${tool//-/_}"
     if declare -f "$func_name" &>/dev/null; then
-      loading "${action_past^}ing ${tool}" "$func_name"
+      if [[ "$action" == "uninstall" ]]; then
+        "$func_name"
+      else
+        loading "${action_past^}ing ${tool}" "$func_name"
+      fi
       case $? in 0) ((count++));; 1) ((failed++));; esac
     fi
     ((current++))

@@ -60,11 +60,17 @@ _uninstall_better_npm_impl() {
     return 0
   fi
 
-  rm -rf "$ZSH_PLUGINS_DIR/zsh-better-npm-completion"
+  local remove_rc=0
+  confirm_remove_paths "zsh-better-npm-completion" "$ZSH_PLUGINS_DIR/zsh-better-npm-completion" || remove_rc=$?
+  if [[ "$remove_rc" -eq 2 ]]; then
+    log_info "zsh-better-npm-completion configuration and data preserved"
+    return 0
+  fi
+  return "$remove_rc"
 }
 
 uninstall_better_npm() {
-  loading "Uninstalling zsh-better-npm-completion" _uninstall_better_npm_impl
+  _uninstall_better_npm_impl
 }
 
 _update_better_npm_impl() {

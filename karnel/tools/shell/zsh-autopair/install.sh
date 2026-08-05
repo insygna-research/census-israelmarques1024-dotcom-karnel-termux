@@ -60,11 +60,17 @@ _uninstall_zsh_autopair_impl() {
     return 0
   fi
 
-  rm -rf "$ZSH_PLUGINS_DIR/zsh-autopair"
+  local remove_rc=0
+  confirm_remove_paths "zsh-autopair" "$ZSH_PLUGINS_DIR/zsh-autopair" || remove_rc=$?
+  if [[ "$remove_rc" -eq 2 ]]; then
+    log_info "zsh-autopair configuration and data preserved"
+    return 0
+  fi
+  return "$remove_rc"
 }
 
 uninstall_zsh_autopair() {
-  loading "Uninstalling zsh-autopair" _uninstall_zsh_autopair_impl
+  _uninstall_zsh_autopair_impl
 }
 
 _update_zsh_autopair_impl() {

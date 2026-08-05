@@ -60,11 +60,17 @@ _uninstall_zsh_autosuggestions_impl() {
     return 0
   fi
 
-  rm -rf "$ZSH_PLUGINS_DIR/zsh-autosuggestions"
+  local remove_rc=0
+  confirm_remove_paths "zsh-autosuggestions" "$ZSH_PLUGINS_DIR/zsh-autosuggestions" || remove_rc=$?
+  if [[ "$remove_rc" -eq 2 ]]; then
+    log_info "zsh-autosuggestions configuration and data preserved"
+    return 0
+  fi
+  return "$remove_rc"
 }
 
 uninstall_zsh_autosuggestions() {
-  loading "Uninstalling zsh-autosuggestions" _uninstall_zsh_autosuggestions_impl
+  _uninstall_zsh_autosuggestions_impl
 }
 
 _update_zsh_autosuggestions_impl() {

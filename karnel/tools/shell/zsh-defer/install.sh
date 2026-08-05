@@ -60,11 +60,17 @@ _uninstall_zsh_defer_impl() {
     return 2
   fi
 
-  rm -rf "$ZSH_PLUGINS_DIR/zsh-defer"
+  local remove_rc=0
+  confirm_remove_paths "zsh-defer" "$ZSH_PLUGINS_DIR/zsh-defer" || remove_rc=$?
+  if [[ "$remove_rc" -eq 2 ]]; then
+    log_info "zsh-defer configuration and data preserved"
+    return 0
+  fi
+  return "$remove_rc"
 }
 
 uninstall_zsh_defer() {
-  loading "Uninstalling zsh-defer" _uninstall_zsh_defer_impl
+  _uninstall_zsh_defer_impl
 }
 
 _update_zsh_defer_impl() {

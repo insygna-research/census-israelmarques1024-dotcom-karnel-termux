@@ -60,11 +60,17 @@ _uninstall_zsh_completions_impl() {
     return 0
   fi
 
-  rm -rf "$ZSH_PLUGINS_DIR/zsh-completions"
+  local remove_rc=0
+  confirm_remove_paths "zsh-completions" "$ZSH_PLUGINS_DIR/zsh-completions" || remove_rc=$?
+  if [[ "$remove_rc" -eq 2 ]]; then
+    log_info "zsh-completions configuration and data preserved"
+    return 0
+  fi
+  return "$remove_rc"
 }
 
 uninstall_zsh_completions() {
-  loading "Uninstalling zsh-completions" _uninstall_zsh_completions_impl
+  _uninstall_zsh_completions_impl
 }
 
 _update_zsh_completions_impl() {
