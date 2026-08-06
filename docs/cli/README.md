@@ -76,7 +76,8 @@ karnel uninstall <module> --tool1 --tool2
 
 Same modules and flags as `install`. Removes installed packages and binaries.
 User configuration is preserved by default; Karnel asks for confirmation before
-removing configuration paths it manages.
+removing configuration paths it manages. `ui --extra-keys` is a legacy
+exception: it replaces and removes `~/.termux/termux.properties` directly.
 
 ```bash
 karnel uninstall ai --opencode --ollama

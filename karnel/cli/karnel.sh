@@ -110,12 +110,12 @@ karnel_help() {
   echo
   log_info "Use with: karnel install|update|reinstall|uninstall <target> [--tool...]"
   echo
-   printf "    ${D_GREEN}%-10s${NC} %s\n" "ai" "39 AI tools (OpenCode, Claude, Ollama, Copilot-Termux, Goose, etc.)"
+  printf "    ${D_GREEN}%-10s${NC} %s\n" "ai" "41 AI tools (OpenCode, Claude, KeelCode, Ollama, Copilot-Termux, Goose, etc.)"
   printf "    ${D_GREEN}%-10s${NC} %s\n" "auto" "Automation (n8n)"
   printf "    ${D_GREEN}%-10s${NC} %s\n" "db" "PostgreSQL, MariaDB, SQLite, MongoDB, Redis"
   printf "    ${D_GREEN}%-10s${NC} %s\n" "deploy" "Vercel, Railway, Netlify, Supabase CLIs"
   printf "    ${D_GREEN}%-10s${NC} %s\n" "dev" "gh, wget, curl, fzf, bat, lsd, proot, tmux, openssh, cloudflared, jq, tree, imagemagick, shfmt, make, udocker, snyk, translate, html2text, bc, ncurses, tmate"
-  printf "    ${D_GREEN}%-10s${NC} %s\n" "utils" "Fconv, Filecheck, Websites, Notes, Treex, Passman, Applaunch, Splash, Httptmux, Zork, QR Code"
+  printf "    ${D_GREEN}%-10s${NC} %s\n" "utils" "Fconv, Filecheck, Websites, Notes, Treex, Passman, Applaunch, Splash, Httptmux, Zork, QR Code, SuperFile"
   printf "    ${D_GREEN}%-10s${NC} %s\n" "editor" "code-server, neovim, nvchad"
   printf "    ${D_GREEN}%-10s${NC} %s\n" "games" "Buzz, CTF God, Detective, Pet Friends, Tamagotchi, Arcade"
   printf "    ${D_GREEN}%-10s${NC} %s\n" "lang" "Bun, Node.js, Python, Perl, PHP, Rust, Clang, Go"
@@ -792,6 +792,9 @@ _tui_install_checklist() {
         "omni-route" "omniRoute" OFF
         "ctx7" "Context7 Docs" OFF
         "openspec" "OpenSpec SDD" OFF
+        "supercode-cli" "Supercode CLI" OFF
+        "puter" "Puter CLI" OFF
+        "keelcode" "KeelCode" OFF
         "copilot-termux" "Copilot-Termux" OFF
         "qoder" "Qoder" OFF
         "ampcode" "AMP Code CLI" OFF
@@ -799,8 +802,6 @@ _tui_install_checklist() {
         "oh-my-pi" "Oh-My-Pi" OFF
         "goose" "Goose CLI" OFF
         "droid" "Factory Droid" OFF
-        "supercode-cli" "Supercode CLI" OFF
-        "puter" "Puter CLI" OFF
       )
       ;;
     dev)
@@ -864,6 +865,7 @@ _tui_install_checklist() {
         "httptmux" "HTTP API Client" OFF
         "zork" "Zork Adventure Games" OFF
         "qrcode" "QR Code Generator" OFF
+        "superfile" "SuperFile" OFF
       )
       ;;
     network)

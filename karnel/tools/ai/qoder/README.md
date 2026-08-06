@@ -4,7 +4,6 @@ A terminal-native AI coding partner—and an agent engine you can build on.
 
 **Package:** qodercli
 **Author:** DevCoreX
-**Repository:** https://github.com/DevCoreXOfficial/karnel-termux
 **Official:** https://qoder.com
 **Type:** AI coding agent (Binary + glibc bootstrapper)
 **License:** Proprietary

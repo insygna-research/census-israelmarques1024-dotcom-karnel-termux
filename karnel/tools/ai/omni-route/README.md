@@ -103,7 +103,6 @@ karnel-route serve --daemon
 ## Links
 
 - Website: https://karnelroute.online
-- GitHub: https://github.com/diegosouzapw/KarnelRoute
 - npm: https://www.npmjs.com/package/karnelroute
 
 ## Related

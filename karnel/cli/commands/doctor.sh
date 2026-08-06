@@ -770,7 +770,7 @@ doctor_termux() {
       list_item "$(basename "$f")"
     done
     ((warnings++))
-    fix_commands+=("karnel install npm --all 2>/dev/null || true")
+    fix_commands+=("karnel install npm 2>/dev/null || true")
     fix_descriptions+=("Reinstall npm tools to fix shebangs")
     fix_callbacks+=("_fix_npm_shebangs")
   else
