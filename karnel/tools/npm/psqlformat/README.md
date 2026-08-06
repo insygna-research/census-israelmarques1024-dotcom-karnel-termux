@@ -5,7 +5,7 @@ PostgreSQL query formatter
 **Package:** psqlformat  
 **Author:** israel marques  
 **Repository:** https://github.com/israelmarques1024-dotcom/karnel-termux  
-**Official:** https://github.com/long2ice/psqlformat  
+**Official:** https://www.npmjs.com/package/psqlformat
 **Type:** Node.js global module (npm)  
 **License:** MIT
 
@@ -40,4 +40,3 @@ karnel update npm --psqlformat
 - Command: `psqlformat`
 - Supports PostgreSQL-specific syntax
 - Can be integrated into editors and CI pipelines
-

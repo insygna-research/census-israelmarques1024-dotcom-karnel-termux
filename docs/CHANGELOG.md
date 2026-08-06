@@ -1,5 +1,9 @@
 # Documentation Changelog
 
+## 4.13.10 - 2026-08-06
+
+- Included root documentation in the npm package and synchronized help, TUI, and release assets.
+
 ## 4.13.9 - 2026-08-06
 
 - Completed tool documentation coverage and corrected CLI references, commands, flags, links, and catalog counts.
