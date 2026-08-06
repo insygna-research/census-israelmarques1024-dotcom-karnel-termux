@@ -12,3 +12,4 @@ bash tests/installer.sh
 bash tests/uninstall.sh
 bash tests/robin.sh
 bash tests/plugins.sh
+bash tests/tool-installers.sh

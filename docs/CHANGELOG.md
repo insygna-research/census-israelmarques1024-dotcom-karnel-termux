@@ -1,5 +1,10 @@
 # Documentation Changelog
 
+## 4.13.8 - 2026-08-06
+
+- Added KeelCode through the official `@keelcode-ai/keelcode` npm package.
+- Added SuperFile built from pinned upstream source `v1.5.0`.
+
 ## 4.13.7 - 2026-08-04
 
 ### Plugin System

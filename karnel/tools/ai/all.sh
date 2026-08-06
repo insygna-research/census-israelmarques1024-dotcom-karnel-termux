@@ -61,6 +61,7 @@ AI_TOOLS_REGISTRY=(
   "openspec:OpenSpec SDD Framework:openspec"
   "supercode-cli:Supercode CLI:supercode"
   "puter:Puter CLI:puter"
+  "keelcode:KeelCode:keelcode"
   "copilot-termux:Copilot-Termux:copilot"
   "qoder:Qoder:qodercli"
   "ampcode:AMP Code CLI:amp"

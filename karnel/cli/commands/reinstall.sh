@@ -300,6 +300,10 @@ _reinstall_specific_tools() {
         reinstall_puter
         case $? in 0) ((reinstalled_count++));; 1) ((failed_count++));; esac
         ;;
+      keelcode)
+        reinstall_keelcode
+        case $? in 0) ((reinstalled_count++));; 1) ((failed_count++));; esac
+        ;;
       qoder)
         reinstall_qoder
         case $? in 0) ((reinstalled_count++));; 1) ((failed_count++));; esac

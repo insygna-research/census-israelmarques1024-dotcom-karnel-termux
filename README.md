@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/israelmarques1024-dotcom/karnel-termux">
-    <img src="https://img.shields.io/badge/version-4.13.7-0078D4?style=for-the-badge" alt="Version">
+    <img src="https://img.shields.io/badge/version-4.13.8-0078D4?style=for-the-badge" alt="Version">
   </a>
   <a href="https://www.npmjs.com/package/karnel-termux">
     <img src="https://img.shields.io/npm/v/karnel-termux?style=for-the-badge&logo=npm&color=cb3837" alt="npm">
@@ -33,11 +33,11 @@
 
 Created by **Israel Marques**.
 
-- **39 AI agents** for coding — Claude, Gemini, OpenCode, Qoder, Ollama, Goose, Factory Droid, Cline, Puter, OmniRoute and more
+- **40 AI agents** for coding — Claude, Gemini, OpenCode, KeelCode, Qoder, Ollama, Goose, Factory Droid, Cline, Puter, OmniRoute and more
 - **8 languages** — Node.js, Python, Go, Rust, C/C++, PHP, Perl, Bun
 - **5 databases** — PostgreSQL, MariaDB, SQLite, MongoDB, Redis
 - **22 dev tools** — gh, curl, fzf, bat, lsd, jq, tmux, openssh, snyk and more
-- **11 utility scripts** — fconv, notes, treex, qrcode, zork and more
+- **12 utility tools** — fconv, notes, treex, qrcode, SuperFile, zork and more
 - **2 network tools** — dark, dedsec-network
 - **4 deploy CLIs** — Vercel, Railway, Netlify, Supabase
 - **Responsible OSINT** — Robin v2.8 through Tor with a loopback-only web UI
@@ -114,7 +114,7 @@ karnel
 |--------|-------------|--------------|
 | `lang` | Node.js, Python, Go, Rust, C/C++, PHP, Perl, Bun | `karnel install lang` |
 | `db` | PostgreSQL, MariaDB, SQLite, MongoDB, Redis | `karnel install db` |
-| `ai` | 39 AI agents for coding | `karnel install ai` |
+| `ai` | 40 AI agents for coding, including KeelCode | `karnel install ai` |
 | `editor` | code-server (VS Code in browser), Neovim, NvChad | `karnel install editor` |
 | `dev` | gh, curl, fzf, bat, lsd, jq and more | `karnel install dev` |
 | `npm` | TypeScript, NestJS CLI, Prettier and more | `karnel install npm` |
@@ -124,11 +124,25 @@ karnel
 | `deploy` | Vercel, Railway, Netlify, Supabase | `karnel install deploy` |
 | `games` | Buzz, CTF God, Detective, Tamagotchi and more | `karnel install games` |
 | `network` | Dark Web OSINT, DedSec Network Toolkit | `karnel install network` |
-| `utils` | fconv, notes, treex, passman, applaunch, qrcode, zork and more | `karnel install utils` |
+| `utils` | fconv, notes, treex, SuperFile, passman, applaunch, qrcode, zork and more | `karnel install utils` |
 | `osint` | Robin v2.8, Tor, Streamlit, and LLM providers | `karnel install osint` |
 | `voice` | Speech-to-agent through Termux:API | `karnel install voice` |
 | `plugin` | Built-in plugin manager — reviewed registry and local plugins | `karnel plugin search` |
 | `security` | Nmap, Hydra, SQLMap, Metasploit, Gobuster and more | `karnel install security` |
+
+---
+
+### KeelCode and SuperFile
+
+```bash
+# Install the KeelCode coding agent
+karnel install ai --keelcode
+
+# Install the SuperFile terminal file manager
+karnel install utils --superfile
+```
+
+Both tools support `update`, `reinstall`, and `uninstall` with the same module and flag.
 
 ---
 

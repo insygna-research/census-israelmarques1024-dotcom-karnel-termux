@@ -209,6 +209,7 @@ _list_ai() {
   table_row "Copilot-Termux" "--copilot-termux" "copilot" "$(_check_cmd "copilot")"
   table_row "Supercode CLI" "--supercode-cli" "supercode" "$(_check_cmd "supercode")"
   table_row "Puter CLI" "--puter" "puter" "$(_check_cmd "puter")"
+  table_row "KeelCode" "--keelcode" "keelcode" "$(_check_cmd "keelcode")"
   table_end
 
   echo
@@ -452,6 +453,7 @@ _list_utils() {
   table_row "httptmux (API client)" "--httptmux" "httptmux" "$(_check_cmd "httptmux")"
   table_row "Zork (text adventure)" "--zork" "zork" "$(_check_cmd "zork")"
   table_row "QR Code Generator" "--qrcode" "qrcode" "$(_check_cmd "qrcode")"
+  table_row "SuperFile" "--superfile" "spf" "$(_check_cmd "spf")"
   table_end
 
   echo
