@@ -16,6 +16,7 @@ TOOLS_PACKAGES=(
   "httptmux"
   "zork"
   "qrcode"
+  "superfile"
 )
 
 TOOLS_DISPLAY=(
@@ -30,6 +31,7 @@ TOOLS_DISPLAY=(
   "httptmux (interactive API client)"
   "Zork (text adventure games I, II, III)"
   "QR Code (link-to-QR generator)"
+  "SuperFile (terminal file manager)"
 )
 
 for _tool in "${TOOLS_PACKAGES[@]}"; do

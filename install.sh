@@ -13,6 +13,7 @@ readonly P_NC='\e[0m'
 
 REPO="https://github.com/israelmarques1024-dotcom/karnel-termux"
 BRANCH="main"
+RELEASE_REF=""
 KARNEL_DATA="${XDG_DATA_HOME:-$HOME/.local/share}/karnel-data"
 KARNEL_REPO="${XDG_DATA_HOME:-$HOME/.local/share}/karnel"
 KARNEL_CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/karnel"
@@ -198,14 +199,26 @@ clone_repo() {
 	fi
 
 	if [[ $is_dev_install -eq 1 ]]; then
+		if [[ -n "$RELEASE_REF" ]]; then
+			log_fail "A release ref cannot be installed from a development checkout"
+			return 1
+		fi
 		KARNEL_REPO="$script_dir"
 		log_info "Developer installation detected"
 		log_ok "Using local repository"
 	elif [[ -d "$KARNEL_REPO/.git" ]]; then
 		progress_bar 3 10
-		if ! git -C "$KARNEL_REPO" pull origin "$BRANCH" &>/dev/null; then
-			log_fail "Failed to update existing repository"
-			return 1
+		if [[ -n "$RELEASE_REF" ]]; then
+			if ! git -C "$KARNEL_REPO" fetch --depth=1 origin "refs/tags/$BRANCH" &>/dev/null ||
+				! git -C "$KARNEL_REPO" checkout --detach FETCH_HEAD &>/dev/null; then
+				log_fail "Failed to update existing repository"
+				return 1
+			fi
+		else
+			if ! git -C "$KARNEL_REPO" pull origin "$BRANCH" &>/dev/null; then
+				log_fail "Failed to update existing repository"
+				return 1
+			fi
 		fi
 		progress_bar 10 10
 		echo
@@ -303,6 +316,18 @@ show_final_message() {
 }
 
 main() {
+	if [[ $# -eq 2 && "$1" == "--ref" ]]; then
+		if [[ ! "$2" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+			echo -e "\n  ${P_FAIL}✖${P_NC}  Invalid release ref: $2" >&2
+			return 1
+		fi
+		BRANCH="$2"
+		RELEASE_REF="$2"
+	elif [[ $# -ne 0 ]]; then
+		echo -e "\n  ${P_FAIL}✖${P_NC}  Usage: install.sh [--ref vX.Y.Z]" >&2
+		return 1
+	fi
+
   if [[ -z "${PREFIX:-}" ]]; then
     echo -e "\n  ${P_FAIL}✖${P_NC}  PREFIX is not set. Are you running in Termux?"
     echo -e "  ${P_DIM}This installer requires Termux environment.${P_NC}"
@@ -319,4 +344,6 @@ main() {
   show_final_message
 }
 
-main
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+	main "$@"
+fi

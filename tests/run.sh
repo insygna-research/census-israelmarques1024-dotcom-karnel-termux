@@ -8,5 +8,8 @@ bash tests/check-syntax.sh
 bash tests/smoke.sh
 bash tests/version.sh
 bash tests/cli-lifecycle.sh
+bash tests/installer.sh
+bash tests/uninstall.sh
 bash tests/robin.sh
 bash tests/plugins.sh
+bash tests/tool-installers.sh

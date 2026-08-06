@@ -220,7 +220,7 @@ _update_try_curl() {
 
   log_info "Trying the official curl installer..."
 
-  if ! curl --fail --silent --show-error --location \
+  if ! curl --fail --silent --show-error --location --proto '=https' --proto-redir '=https' \
     "https://api.github.com/repos/israelmarques1024-dotcom/karnel-termux/releases/latest" \
     -o "$meta"; then
     rm -f "$meta" "$installer" "$sumfile"
@@ -234,10 +234,10 @@ _update_try_curl() {
     return 1
   fi
 
-  if ! curl --fail --silent --show-error --location \
+  if ! curl --fail --silent --show-error --location --proto '=https' --proto-redir '=https' \
     "https://github.com/israelmarques1024-dotcom/karnel-termux/releases/download/$tag/karnel-termux-install.sh.sha256" \
     -o "$sumfile" ||
-    ! curl --fail --silent --show-error --location \
+    ! curl --fail --silent --show-error --location --proto '=https' --proto-redir '=https' \
     "https://github.com/israelmarques1024-dotcom/karnel-termux/releases/download/$tag/karnel-termux-install.sh" \
     -o "$installer"; then
     rm -f "$meta" "$installer" "$sumfile"
@@ -252,7 +252,7 @@ _update_try_curl() {
 
   rm -f "$meta" "$sumfile"
 
-  if bash "$installer"; then
+  if bash "$installer" --ref "$tag"; then
     rm -f "$installer"
     log_success "Karnel-Termux updated via curl (v$tag)"
     return 0
@@ -282,8 +282,13 @@ _update_latest_release_tag() {
 _verify_sha256() {
   local file="$1" sumfile="$2"
   local expected actual
-  expected=$(awk 'NR == 1 { print $1 }' "$sumfile")
-  [[ -n "$expected" ]] || return 1
+  local -a checksum_lines
+
+  mapfile -t checksum_lines <"$sumfile" || return 1
+  if [[ ${#checksum_lines[@]} -ne 1 ]] || [[ ! "${checksum_lines[0]}" =~ ^([0-9a-f]{64})[[:space:]]+\*?karnel-termux-install\.sh$ ]]; then
+    return 1
+  fi
+  expected="${BASH_REMATCH[1]}"
   if command -v sha256sum &>/dev/null; then
     actual=$(sha256sum "$file" | awk '{ print $1 }')
   elif command -v node &>/dev/null; then

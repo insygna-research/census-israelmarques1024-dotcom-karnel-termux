@@ -60,11 +60,17 @@ _uninstall_fzf_tab_impl() {
     return 0
   fi
 
-  rm -rf "$ZSH_PLUGINS_DIR/fzf-tab"
+  local remove_rc=0
+  confirm_remove_paths "fzf-tab" "$ZSH_PLUGINS_DIR/fzf-tab" || remove_rc=$?
+  if [[ "$remove_rc" -eq 2 ]]; then
+    log_info "fzf-tab configuration and data preserved"
+    return 0
+  fi
+  return "$remove_rc"
 }
 
 uninstall_fzf_tab() {
-  loading "Uninstalling fzf-tab" _uninstall_fzf_tab_impl
+  _uninstall_fzf_tab_impl
 }
 
 _update_fzf_tab_impl() {

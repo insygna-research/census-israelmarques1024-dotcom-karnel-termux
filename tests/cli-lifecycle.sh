@@ -52,6 +52,7 @@ mkdir -p "$KARNEL_CACHE"
 
 mock_installer='touch "$KARNEL_CACHE/curl-installed"'
 mock_sum=$(printf '%s\n' "$mock_installer" | sha256sum | awk '{print $1}')
+mock_sumfile_line=""
 mock_tag="v4.14.0"
 mock_fail=0
 
@@ -75,7 +76,7 @@ curl() {
     printf '{"tag_name":"%s"}\n' "$mock_tag" > "$out"
     ;;
   *"/releases/download/"*"/karnel-termux-install.sh.sha256")
-    printf '%s  karnel-termux-install.sh\n' "$mock_sum" > "$out"
+    printf '%s\n' "${mock_sumfile_line:-$mock_sum  karnel-termux-install.sh}" > "$out"
     ;;
   *"/releases/download/"*"/karnel-termux-install.sh")
     printf '%s\n' "$mock_installer" > "$out"
@@ -96,6 +97,18 @@ fi
 test -f "$KARNEL_CACHE/curl-installed"
 ((pass += 1))
 
+rm -f "$KARNEL_CACHE/curl-installed" "$KARNEL_CACHE/curl-args"
+mock_installer='printf "%s\n" "$*" > "$KARNEL_CACHE/curl-args"'
+mock_sum=$(printf '%s\n' "$mock_installer" | sha256sum | awk '{print $1}')
+if ! _update_try_curl >/dev/null 2>&1; then
+  printf 'FAIL: curl update did not pass the verified ref\n' >&2
+  exit 1
+fi
+test "$(cat "$KARNEL_CACHE/curl-args")" = "--ref $mock_tag"
+((pass += 1))
+
+mock_installer='touch "$KARNEL_CACHE/curl-installed"'
+mock_sum=$(printf '%s\n' "$mock_installer" | sha256sum | awk '{print $1}')
 rm -f "$KARNEL_CACHE/curl-installed"
 mock_sum="0000000000000000000000000000000000000000000000000000000000000000"
 if _update_try_curl >/dev/null 2>&1; then
@@ -107,6 +120,31 @@ test ! -f "$KARNEL_CACHE/curl-installed"
 
 rm -f "$KARNEL_CACHE/curl-installed"
 mock_sum=$(printf '%s\n' "$mock_installer" | sha256sum | awk '{print $1}')
+mock_sumfile_line="$mock_sum  unexpected-file"
+if _update_try_curl >/dev/null 2>&1; then
+  printf 'FAIL: checksum for an unexpected filename was accepted\n' >&2
+  exit 1
+fi
+test ! -f "$KARNEL_CACHE/curl-installed"
+((pass += 1))
+
+printf -v mock_sumfile_line '%s  karnel-termux-install.sh\n%s  karnel-termux-install.sh' "$mock_sum" "$mock_sum"
+if _update_try_curl >/dev/null 2>&1; then
+  printf 'FAIL: multiple checksum lines were accepted\n' >&2
+  exit 1
+fi
+test ! -f "$KARNEL_CACHE/curl-installed"
+((pass += 1))
+
+mock_sumfile_line="not-a-checksum  karnel-termux-install.sh"
+if _update_try_curl >/dev/null 2>&1; then
+  printf 'FAIL: malformed checksum line was accepted\n' >&2
+  exit 1
+fi
+test ! -f "$KARNEL_CACHE/curl-installed"
+((pass += 1))
+
+mock_sumfile_line=""
 mock_tag="v4.14.0-rc1"
 if _update_try_curl >/dev/null 2>&1; then
   printf 'FAIL: invalid release tag was not rejected\n' >&2
@@ -138,6 +176,58 @@ assert_failure "unknown install target" install_main not-a-target
 assert_failure "unknown install target with flags" install_main not-a-target --tool
 assert_failure "unknown update target" update_main not-a-target
 assert_failure "unknown uninstall target" uninstall_main not-a-target
+
+tool_attempts=()
+install_gh() { tool_attempts+=(install-gh); return 0; }
+assert_failure "unknown install tool preserves batch failure" install_main dev --unknown --gh
+if [[ "${tool_attempts[*]}" != "install-gh" ]]; then
+  printf 'FAIL: install did not attempt tools after an unknown flag: %s\n' "${tool_attempts[*]}" >&2
+  exit 1
+fi
+((pass += 1))
+
+tool_attempts=()
+install_gh() { tool_attempts+=(install-gh); return 1; }
+install_wget() { tool_attempts+=(install-wget); return 0; }
+assert_failure "install tool failure preserves batch failure" install_main dev --gh --wget
+if [[ "${tool_attempts[*]}" != "install-gh install-wget" ]]; then
+  printf 'FAIL: install stopped after a tool failure: %s\n' "${tool_attempts[*]}" >&2
+  exit 1
+fi
+((pass += 1))
+
+# shellcheck source=../karnel/cli/commands/reinstall.sh
+source "$KARNEL_PATH/cli/commands/reinstall.sh"
+tool_attempts=()
+reinstall_gh() { tool_attempts+=(reinstall-gh); return 0; }
+assert_failure "unknown reinstall tool preserves batch failure" reinstall_main dev --unknown --gh
+if [[ "${tool_attempts[*]}" != "reinstall-gh" ]]; then
+  printf 'FAIL: reinstall did not attempt tools after an unknown flag: %s\n' "${tool_attempts[*]}" >&2
+  exit 1
+fi
+((pass += 1))
+
+tool_attempts=()
+reinstall_gh() { tool_attempts+=(reinstall-gh); return 1; }
+reinstall_wget() { tool_attempts+=(reinstall-wget); return 0; }
+assert_failure "reinstall tool failure preserves batch failure" reinstall_main dev --gh --wget
+if [[ "${tool_attempts[*]}" != "reinstall-gh reinstall-wget" ]]; then
+  printf 'FAIL: reinstall stopped after a tool failure: %s\n' "${tool_attempts[*]}" >&2
+  exit 1
+fi
+((pass += 1))
+
+# shellcheck source=../karnel/utils/tools.sh
+source "$KARNEL_PATH/utils/tools.sh"
+install_first() { tool_attempts+=(first); return 1; }
+install_second() { tool_attempts+=(second); return 0; }
+tool_attempts=()
+assert_failure "shared batch helper preserves failure" _batch_tool_action test install first second
+if [[ "${tool_attempts[*]}" != "first second" ]]; then
+  printf 'FAIL: shared batch helper stopped after failure: %s\n' "${tool_attempts[*]}" >&2
+  exit 1
+fi
+((pass += 1))
 
 # shellcheck source=../karnel/modules/network.sh
 source "$KARNEL_PATH/modules/network.sh"

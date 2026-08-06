@@ -748,19 +748,24 @@ _plugin_fetch_registry() {
 _plugin_registry_entry_for() {
   local registry="$1"
   local selector="$2"
-  local filter result
+  local filter result count
 
   if _plugin_repo_is_valid "$selector"; then
-    filter='.plugins[] | select(.repo == $selector)'
+    filter='[.plugins[] | select(.repo == $selector)]'
   elif _plugin_name_is_valid "$selector"; then
-    filter='.plugins[] | select(.name == $selector)'
+    filter='[.plugins[] | select(.name == $selector)]'
   else
     return 1
   fi
 
   result="$(jq -c --arg selector "$selector" "$filter" "$registry")" || return 1
-  [[ -n "$result" ]] || return 1
-  printf '%s\n' "$result"
+  count="$(jq 'length' <<<"$result")" || return 1
+  (( count > 0 )) || return 1
+  if (( count > 1 )); then
+    log_error "Repository '$selector' provides multiple plugins; install one by its approved name."
+    return 2
+  fi
+  jq -c '.[0]' <<<"$result"
 }
 
 _plugin_registry_entry_matches_manifest() {

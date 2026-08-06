@@ -47,11 +47,17 @@ _uninstall_zsh_syntax_highlighting_impl() {
     return 0
   fi
 
-  rm -rf "$ZSH_PLUGINS_DIR/zsh-syntax-highlighting"
+  local remove_rc=0
+  confirm_remove_paths "zsh-syntax-highlighting" "$ZSH_PLUGINS_DIR/zsh-syntax-highlighting" || remove_rc=$?
+  if [[ "$remove_rc" -eq 2 ]]; then
+    log_info "zsh-syntax-highlighting configuration and data preserved"
+    return 0
+  fi
+  return "$remove_rc"
 }
 
 uninstall_zsh_syntax_highlighting() {
-  loading "Uninstalling zsh-syntax-highlighting" _uninstall_zsh_syntax_highlighting_impl
+  _uninstall_zsh_syntax_highlighting_impl
 }
 
 _update_zsh_syntax_highlighting_impl() {
