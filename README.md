@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/israelmarques1024-dotcom/karnel-termux">
-    <img src="https://img.shields.io/badge/version-4.13.8-0078D4?style=for-the-badge" alt="Version">
+    <img src="https://img.shields.io/badge/version-4.13.9-0078D4?style=for-the-badge" alt="Version">
   </a>
   <a href="https://www.npmjs.com/package/karnel-termux">
     <img src="https://img.shields.io/npm/v/karnel-termux?style=for-the-badge&logo=npm&color=cb3837" alt="npm">
@@ -105,6 +105,7 @@ karnel
 | `karnel pg` | PostgreSQL manager |
 | `karnel init <template>` | Initialize projects with templates |
 | `karnel deploy` | Deploy projects (Vercel, Railway, Netlify, Supabase) |
+| `karnel supabase` | Manage the Supabase CLI and remote-project helpers |
 | `karnel robin` | Manage the Robin OSINT service |
 | `karnel --version` | Show installed version |
 
@@ -254,7 +255,7 @@ See the bundled reference with `karnel show osint --robin`.
 
 ---
 
-## AI Agents (39)
+## AI Agents (41)
 
 ```bash
 karnel install ai                             # Install all
@@ -306,6 +307,7 @@ karnel install ai --opencode --ollama         # Install specific agents
 | **Factory Droid** | `--droid` | Enterprise AI agent (via proot-distro Ubuntu) |
 | **Supercode CLI** | `--supercode-cli` | Supercode CLI — official npm package |
 | **Puter CLI** | `--puter` | Puter CLI for sites and workers |
+| **KeelCode** | `--keelcode` | Hosted coding-agent CLI |
  
 </details>
 
@@ -465,7 +467,8 @@ Deploy your projects directly from terminal:
 karnel deploy vercel                  # Deploy to Vercel
 karnel deploy railway                 # Deploy to Railway
 karnel deploy netlify                 # Deploy to Netlify
-karnel deploy supabase                # Deploy to Supabase
+karnel supabase doctor                # Check Supabase CLI and project setup
+karnel supabase link --project-ref <ref> # Link the current project
 ```
 
 Install a platform CLI first with `karnel install deploy --<tool>`.
@@ -538,7 +541,7 @@ karnel/
 │   │   └── karnel.sh    # Main CLI (with TUI)
 │   ├── modules/       # Module orchestrators
 │   ├── tools/         # Tool installers
-│   │   ├── ai/        # 39 AI agents
+│   │   ├── ai/        # 41 AI agents
 │   │   ├── lang/      # 8 languages
 │   │   ├── db/        # 5 databases
 │   │   ├── dev/       # 22 dev tools
@@ -548,7 +551,7 @@ karnel/
 │   │   ├── ui/        # 4 UI components
 │   │   ├── auto/      # 1 automation tool
 │   │   ├── network/   # 2 network tools
-│   │   ├── utils/     # 11 utility tools
+│   │   ├── utils/     # 12 utility tools
 │   │   ├── games/     # 6 games
 │   │   ├── security/  # 30 security tools
 │   │   └── deploy/    # 4 deploy CLIs

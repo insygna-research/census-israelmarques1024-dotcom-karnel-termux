@@ -4,8 +4,8 @@ Modern Neovim configuration with preconfigured plugins
 
 **Package:** nvchad (configuration)  
 **Author:** israel  
-**Repository:** https://github.com/israelOfficial/karnel-termux  
-**Official:** https://github.com/israelOfficial/nvchad-termux  
+**Repository:** https://github.com/israelmarques1024-dotcom/karnel-termux
+**Official:** https://github.com/DevCoreXOfficial/nvchad-termux
 **Type:** Code editor configuration (git clone)  
 **License:** MIT
 
@@ -41,5 +41,4 @@ karnel update editor --nvchad
 - Installs to `~/.config/nvim/`
 - Includes GitHub Copilot and CodeCompanion
 - Preconfigured for TypeScript, JavaScript, Python, PHP, Perl, Rust, Lua
-- For detailed information: https://github.com/israelOfficial/nvchad-termux
-
+- For detailed information: https://github.com/DevCoreXOfficial/nvchad-termux

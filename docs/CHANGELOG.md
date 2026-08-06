@@ -1,5 +1,9 @@
 # Documentation Changelog
 
+## 4.13.9 - 2026-08-06
+
+- Completed tool documentation coverage and corrected CLI references, commands, flags, links, and catalog counts.
+
 ## 4.13.8 - 2026-08-06
 
 - Added KeelCode through the official `@keelcode-ai/keelcode` npm package.

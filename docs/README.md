@@ -26,5 +26,6 @@ With a single CLI (`karnel`), you can install and manage 41 AI agents, 8 languag
 - **[KeelCode](../karnel/tools/ai/keelcode/README.md)** — Hosted coding-agent CLI: `karnel install ai --keelcode`
 - **[SuperFile](../karnel/tools/utils/superfile/README.md)** — Terminal file manager: `karnel install utils --superfile`
 - **[Utility Scripts](../karnel/tools/utils/fconv/README.md)** — fconv, notes, treex, SuperFile, passman, applaunch, splash, httptmux, zork, qrcode and more
+- **[Supabase CLI](./cli/README.md#supabase--remote-project-helpers)** — `karnel supabase` remote-project helpers
 - **[Architecture](./ARCHITECTURE.md)** — Project structure, module system, import mechanism
 - **[Changelog](./CHANGELOG.md)** — Version history, bug fixes, known issues

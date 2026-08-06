@@ -22,7 +22,7 @@ karnel install <module> --tool1 --tool2  # Install specific tools only
 |-----------|-------------|
 | `lang`    | Node.js, Python, Go, Rust, C/C++, PHP, Perl, Bun |
 | `db`      | PostgreSQL, MariaDB, SQLite, MongoDB, Redis |
-| `ai`      | 40 AI agents (OpenCode, Claude Code, Codebuff, Freebuff, Qoder, AMP Code, Cursor CLI, Oh-My-Pi, Goose, Factory Droid, Puter, Ollama, etc.) |
+| `ai`      | 41 AI agents (OpenCode, Claude Code, KeelCode, Codebuff, Freebuff, Qoder, AMP Code, Cursor CLI, Oh-My-Pi, Goose, Factory Droid, Puter, Ollama, etc.) |
 | `editor`  | code-server (VS Code in browser), Neovim, NvChad |
 | `dev`     | gh, curl, fzf, bat, lsd, jq, tmux, openssh, snyk (22 tools) |
 | `npm`     | TypeScript, NestJS CLI, Prettier, Vercel CLI, etc. |
@@ -32,7 +32,7 @@ karnel install <module> --tool1 --tool2  # Install specific tools only
 | `deploy`  | Vercel, Railway, Netlify, Supabase CLIs |
 | `games`   | Buzz, CTF God, Detective, Tamagotchi, Arcade, Pet Friends |
 | `network` | Dark Web OSINT, DedSec Network Toolkit |
-| `utils`   | fconv, filecheck, notes, qrcode, zork, httptmux (11 scripts) |
+| `utils`   | fconv, filecheck, notes, qrcode, SuperFile, zork, httptmux (12 scripts) |
 | `osint`   | Robin v2.8 — dark web OSINT via Tor + LLM |
 | `voice`   | Speech-to-agent via Termux:API |
 | `security`| Nmap, Hydra, SQLMap, Metasploit, and 26 other tools |
@@ -42,7 +42,7 @@ karnel install <module> --tool1 --tool2  # Install specific tools only
 
 | Module    | Flags |
 |-----------|-------|
-| `ai`      | `--qwen-code`, `--qoder`, `--gemini-cli`, `--claude-code`, `--mistral-vibe`, `--openclaude`, `--openclaw`, `--ollama`, `--codex`, `--opencode`, `--mimocode`, `--engram`, `--codegraph`, `--pi`, `--antigravity-cli`, `--minimax-cli`, `--gentle-ai`, `--gga`, `--hermes-agent`, `--kimi-code`, `--command-code`, `--codebuff`, `--freebuff`, `--kilocode-cli`, `--kiro`, `--crush`, `--cline`, `--odysseus`, `--kimchi-code`, `--omni-route`, `--ctx7`, `--openspec`, `--supercode-cli`, `--puter`, `--ampcode`, `--oh-my-pi`, `--cursor-cli`, `--copilot-termux`, `--goose`, `--droid` |
+| `ai`      | `--qwen-code`, `--gemini-cli`, `--claude-code`, `--mistral-vibe`, `--openclaude`, `--openclaw`, `--ollama`, `--codex`, `--opencode`, `--mimocode`, `--engram`, `--codegraph`, `--pi`, `--antigravity-cli`, `--minimax-cli`, `--gentle-ai`, `--gga`, `--hermes-agent`, `--kimi-code`, `--command-code`, `--codebuff`, `--freebuff`, `--kilocode-cli`, `--kiro`, `--crush`, `--cline`, `--odysseus`, `--kimchi-code`, `--omni-route`, `--ctx7`, `--openspec`, `--supercode-cli`, `--puter`, `--keelcode`, `--copilot-termux`, `--qoder`, `--ampcode`, `--cursor-cli`, `--oh-my-pi`, `--goose`, `--droid` |
 | `db`      | `--postgresql`, `--mariadb`, `--sqlite`, `--mongodb`, `--redis` |
 | `dev`     | `--gh`, `--wget`, `--curl`, `--lsd`, `--bat`, `--proot`, `--ncurses`, `--tmate`, `--openssh`, `--tmux`, `--cloudflared`, `--translate`, `--html2text`, `--jq`, `--bc`, `--tree`, `--fzf`, `--imagemagick`, `--shfmt`, `--make`, `--udocker`, `--snyk` |
 | `lang`    | `--bun`, `--nodejs`, `--python`, `--perl`, `--php`, `--rust`, `--clang`, `--golang` |
@@ -54,7 +54,7 @@ karnel install <module> --tool1 --tool2  # Install specific tools only
 | `deploy`  | `--vercel`, `--railway`, `--netlify`, `--supabase` |
 | `games`   | `--buzz`, `--ctfgod`, `--detective`, `--pet-friends`, `--tamagotchi`, `--arcade` |
 | `network` | `--dark`, `--dedsec-network` |
-| `utils`   | `--fconv`, `--filecheck`, `--websites`, `--notes`, `--treex`, `--passman`, `--applaunch`, `--splash`, `--httptmux`, `--zork`, `--qrcode` |
+| `utils`   | `--fconv`, `--filecheck`, `--websites`, `--notes`, `--treex`, `--passman`, `--applaunch`, `--splash`, `--httptmux`, `--zork`, `--qrcode`, `--superfile` |
 | `security`| Run `karnel list security` for the 30 supported tool flags |
 
 ```bash
@@ -74,8 +74,9 @@ karnel uninstall <module>
 karnel uninstall <module> --tool1 --tool2
 ```
 
-Same modules and flags as `install`. Removes installed packages, binaries, and
-configurations.
+Same modules and flags as `install`. Removes installed packages and binaries.
+User configuration is preserved by default; Karnel asks for confirmation before
+removing configuration paths it manages.
 
 ```bash
 karnel uninstall ai --opencode --ollama
@@ -134,7 +135,7 @@ binary/command name, and current install status.
 |-----------|-------|
 | `lang`    | 8 languages |
 | `db`      | 5 databases |
-| `ai`      | 39 AI agents |
+| `ai`      | 41 AI agents |
 | `editor`  | 3 editor components |
 | `dev`     | 22 development tools |
 | `npm`     | 11 npm global modules |
@@ -144,7 +145,7 @@ binary/command name, and current install status.
 | `deploy`  | 4 deploy CLIs |
 | `games`   | 6 games |
 | `network` | 2 network tools |
-| `utils`   | 11 utility scripts |
+| `utils`   | 12 utility scripts |
 | `osint`   | Robin OSINT |
 | `voice`   | Voice commands |
 | `security`| 30 security tools |
@@ -559,6 +560,35 @@ karnel deploy supabase
 
 ---
 
+## supabase — Remote-project helpers
+
+```bash
+karnel supabase <subcommand> [options]
+```
+
+The top-level command manages Supabase CLI installation and remote-project
+workflows. It does not start the local Supabase stack on Termux; that requires
+Docker on a Linux host.
+
+| Subcommand | Description |
+|------------|-------------|
+| `doctor` | Check CLI, project configuration, and API reachability |
+| `types` | Generate TypeScript types for a linked project |
+| `migrate` | Run `supabase db <args>` |
+| `link` | Run `supabase link <args>` |
+| `remote-start` / `remote` | Show the remote-development guide |
+| `remote-status` / `status` | Check Supabase status |
+| `install` / `uninstall` | Install or remove the Supabase CLI |
+
+```bash
+karnel supabase install
+karnel supabase link --project-ref abcdef
+karnel supabase types
+karnel supabase migrate push
+```
+
+---
+
 ## pg — PostgreSQL manager
 
 ```bash
@@ -619,6 +649,11 @@ karnel start robin
 
 ```bash
 karnel backup [--cloud]
+karnel backup snapshot <name>
+karnel backup list
+karnel backup info [file]
+karnel backup --cron
+karnel backup restore [file]
 ```
 
 Creates `$KARNEL_DATA/backups/termux-<timestamp>.tar.gz` with SHA256 checksum.
@@ -638,11 +673,18 @@ Creates `$KARNEL_DATA/backups/termux-<timestamp>.tar.gz` with SHA256 checksum.
 | Flag | Description |
 |------|-------------|
 | `--cloud` | Upload via `rclone` (remote named `karnel`) |
+| `snapshot <name>` | Create a named snapshot |
+| `list` / `ls` | List full backups and snapshots |
+| `info` / `show [file]` | Show a backup's contents (latest if omitted) |
+| `--cron` | Schedule a daily backup at 3:00 AM |
+| `restore [file]` | Restore configuration from a full backup |
 | `--help`, `-h` | Show help |
 
 ```bash
 karnel backup
 karnel backup --cloud
+karnel backup snapshot before-update
+karnel backup list
 ```
 
 ---
@@ -650,7 +692,7 @@ karnel backup --cloud
 ## restore — Full Termux restore
 
 ```bash
-karnel restore [<file>] [--cloud]
+karnel restore [--cloud] [--list] [<file>]
 ```
 
 ### What it restores
@@ -671,12 +713,14 @@ Verifies SHA256 checksum automatically if available.
 |----------|-------------|
 | `<file>` | Path to a specific backup file |
 | `--cloud` | Download and restore via the `karnel` rclone remote |
+| `--list`, `-l` | List available full backups and snapshots |
 | `--help`, `-h` | Show help |
 
 ```bash
 karnel restore
 karnel restore /path/to/backup.tar.gz
 karnel restore --cloud
+karnel restore --list
 ```
 
 ---
