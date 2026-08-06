@@ -33,7 +33,7 @@
 
 Created by **Israel Marques**.
 
-- **40 AI agents** for coding — Claude, Gemini, OpenCode, KeelCode, Qoder, Ollama, Goose, Factory Droid, Cline, Puter, OmniRoute and more
+- **41 AI agents** for coding — Claude, Gemini, OpenCode, KeelCode, Qoder, Ollama, Goose, Factory Droid, Cline, Puter, OmniRoute and more
 - **8 languages** — Node.js, Python, Go, Rust, C/C++, PHP, Perl, Bun
 - **5 databases** — PostgreSQL, MariaDB, SQLite, MongoDB, Redis
 - **22 dev tools** — gh, curl, fzf, bat, lsd, jq, tmux, openssh, snyk and more
@@ -114,7 +114,7 @@ karnel
 |--------|-------------|--------------|
 | `lang` | Node.js, Python, Go, Rust, C/C++, PHP, Perl, Bun | `karnel install lang` |
 | `db` | PostgreSQL, MariaDB, SQLite, MongoDB, Redis | `karnel install db` |
-| `ai` | 40 AI agents for coding, including KeelCode | `karnel install ai` |
+| `ai` | 41 AI agents for coding, including KeelCode | `karnel install ai` |
 | `editor` | code-server (VS Code in browser), Neovim, NvChad | `karnel install editor` |
 | `dev` | gh, curl, fzf, bat, lsd, jq and more | `karnel install dev` |
 | `npm` | TypeScript, NestJS CLI, Prettier and more | `karnel install npm` |
