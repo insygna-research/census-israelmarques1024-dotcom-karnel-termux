@@ -10,12 +10,13 @@ PREFIX="$TEST_ROOT/com.termux-prefix"
 ARGS_FILE="$TEST_ROOT/bash-args"
 mkdir -p "$FAKE_BIN" "$PREFIX/bin"
 
+printf '#!%s\n' "$BASH" >"$FAKE_BIN/npm"
 printf '%s\n' \
-  '#!/data/data/com.termux/files/usr/bin/bash' \
   'if [[ "$3" == "ignore-scripts" ]]; then' \
   '  printf "false\\n"' \
   'fi' >"$FAKE_BIN/npm"
-printf '%s\n' '#!/data/data/com.termux/files/usr/bin/bash' 'printf "%s\n" "$@" >"$NPM_POSTINSTALL_ARGS"' >"$FAKE_BIN/bash"
+printf '#!%s\n' "$BASH" >"$FAKE_BIN/bash"
+printf '%s\n' 'printf "%s\n" "$@" >"$NPM_POSTINSTALL_ARGS"' >>"$FAKE_BIN/bash"
 chmod +x "$FAKE_BIN/npm" "$FAKE_BIN/bash"
 
 PATH="$FAKE_BIN:$PATH" \

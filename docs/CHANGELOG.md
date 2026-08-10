@@ -1,5 +1,10 @@
 # Documentation Changelog
 
+## 4.13.12 - 2026-08-10
+
+- Fixed the npm postinstall release contract so it runs on GitHub Actions and
+  Termux using the active Bash interpreter.
+
 ## 4.13.11 - 2026-08-10
 
 - Hardened installers to preserve user-managed commands and data, with atomic
