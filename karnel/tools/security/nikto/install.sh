@@ -15,6 +15,7 @@ install_nikto() {
   if git clone --depth 1 https://github.com/sullo/nikto "$_NIKTO_DIR" 2>/dev/null; then
     ln -sf "$_NIKTO_DIR/program/nikto.pl" "$PREFIX/bin/nikto"
     chmod +x "$PREFIX/bin/nikto"
+    : > "$_NIKTO_DIR/.karnel-wrapper"
     log_success "nikto instalado"
     return 0
   fi
@@ -24,8 +25,10 @@ install_nikto() {
 
 uninstall_nikto() {
   log_info "Removendo nikto..."
-  rm -f "$PREFIX/bin/nikto"
-  rm -rf "$_NIKTO_DIR"
+  if [ -f "$_NIKTO_DIR/.karnel-wrapper" ]; then
+    [ "$(readlink "$PREFIX/bin/nikto")" = "$_NIKTO_DIR/program/nikto.pl" ] && rm -f "$PREFIX/bin/nikto"
+    rm -rf "$_NIKTO_DIR"
+  fi
   log_success "nikto removido"
 }
 

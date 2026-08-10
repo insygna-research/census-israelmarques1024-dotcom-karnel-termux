@@ -233,12 +233,12 @@ _install_specific_tools() {
               ((failed_count++))
             fi
             ;;
-          *)
-            ((failed_count++))
-            ;;
-           2)
+          2)
             # Already installed (skipped)
             ((skipped_count++))
+            ;;
+          *)
+            ((failed_count++))
             ;;
         esac
       else

@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/israelmarques1024-dotcom/karnel-termux">
-    <img src="https://img.shields.io/badge/version-4.13.10-0078D4?style=for-the-badge" alt="Version">
+    <img src="https://img.shields.io/badge/version-4.13.11-0078D4?style=for-the-badge" alt="Version">
   </a>
   <a href="https://www.npmjs.com/package/karnel-termux">
     <img src="https://img.shields.io/npm/v/karnel-termux?style=for-the-badge&logo=npm&color=cb3837" alt="npm">
@@ -166,6 +166,10 @@ user's permissions. They are not sandboxed. Registry plugins have reviewed
 metadata and are staged, validated, and atomically activated, but you should
 still review code you do not trust.
 
+Each Karnel release pins and verifies one reviewed registry snapshot. New
+registry entries become available after updating Karnel to a release that
+includes that snapshot.
+
 Installing an arbitrary GitHub repository requires both `--unsafe` and an
 interactive confirmation:
 
@@ -304,7 +308,7 @@ karnel install ai --opencode --ollama         # Install specific agents
 | **Cursor CLI** | `--cursor-cli` | Official Cursor AI agent adapted for Termux (glibc) |
 | **Oh-My-Pi** | `--oh-my-pi` | Enhanced Pi agent with native Rust addons |
 | **Goose CLI** | `--goose` | AI agent framework by Block (native Termux musl) |
-| **Factory Droid** | `--droid` | Enterprise AI agent (via proot-distro Ubuntu) |
+| **Factory Droid** | `--droid` | Enterprise AI agent (Ubuntu proot-distro with pinned npm package) |
 | **Supercode CLI** | `--supercode-cli` | Supercode CLI — official npm package |
 | **Puter CLI** | `--puter` | Puter CLI for sites and workers |
 | **KeelCode** | `--keelcode` | Hosted coding-agent CLI |

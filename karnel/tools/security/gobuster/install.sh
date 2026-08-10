@@ -2,9 +2,10 @@
 
 _GOBUSTER_VERSION="3.6"
 _GOBUSTER_DIR="$PREFIX/share/gobuster"
+_GOBUSTER_MARKER="$PREFIX/share/karnel-installers/gobuster"
 
-_install_gobuster_bin() {
-  local arch
+_install_gobuster_bin() (
+  local arch tmpdir archive staged_bin
   arch="$(uname -m)"
   case "$arch" in
     aarch64) _GOBUSTER_ARCH="arm64" ;;
@@ -13,15 +14,22 @@ _install_gobuster_bin() {
     *) log_error "Arquitetura não suportada: $arch"; return 1 ;;
   esac
   local url="https://github.com/OJ/gobuster/releases/download/v${_GOBUSTER_VERSION}/gobuster_Linux-${_GOBUSTER_ARCH}.tar.gz"
-  mkdir -p "$_GOBUSTER_DIR"
-  curl -fsSL "$url" -o /tmp/gobuster.tar.gz || return 1
-  tar -zxf /tmp/gobuster.tar.gz -C "$_GOBUSTER_DIR" || return 1
-  rm -f /tmp/gobuster.tar.gz
-  mv "$_GOBUSTER_DIR/gobuster" "$PREFIX/bin/gobuster"
-  chmod +x "$PREFIX/bin/gobuster"
-  rm -rf "$_GOBUSTER_DIR"
+  tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/gobuster.XXXXXX") || return 1
+  staged_bin=""
+  trap 'rm -rf "$tmpdir"; [ -z "$staged_bin" ] || rm -f "$staged_bin"' EXIT
+  archive="$tmpdir/gobuster.tar.gz"
+  curl -fsSL "$url" -o "$archive" || return 1
+  tar -zxf "$archive" -C "$tmpdir" || return 1
+  [ -f "$tmpdir/gobuster" ] || { log_error "Pacote gobuster inválido"; return 1; }
+  mkdir -p "$PREFIX/bin" || return 1
+  staged_bin=$(mktemp "$PREFIX/bin/.gobuster.XXXXXX") || return 1
+  mv "$tmpdir/gobuster" "$staged_bin" && chmod +x "$staged_bin" && [ -x "$staged_bin" ] || return 1
+  mv -f "$staged_bin" "$PREFIX/bin/gobuster" || return 1
+  staged_bin=""
+  mkdir -p "$(dirname "$_GOBUSTER_MARKER")" || return 1
+  sha256sum "$PREFIX/bin/gobuster" > "$_GOBUSTER_MARKER"
   return 0
-}
+)
 
 install_gobuster() {
   if command -v gobuster &>/dev/null; then
@@ -43,7 +51,10 @@ install_gobuster() {
 
 uninstall_gobuster() {
   log_info "Removendo gobuster..."
-  rm -f "$PREFIX/bin/gobuster"
+  if [ -f "$_GOBUSTER_MARKER" ]; then
+    [ "$(sha256sum "$PREFIX/bin/gobuster" 2>/dev/null)" = "$(<"$_GOBUSTER_MARKER")" ] && rm -f "$PREFIX/bin/gobuster"
+    rm -f "$_GOBUSTER_MARKER"
+  fi
   log_success "gobuster removido"
 }
 

@@ -15,6 +15,7 @@ install_whatweb() {
   if git clone --depth 1 https://github.com/urbanadventurer/WhatWeb "$_WHATWEB_DIR" 2>/dev/null; then
     ln -sf "$_WHATWEB_DIR/whatweb" "$PREFIX/bin/whatweb"
     chmod +x "$PREFIX/bin/whatweb"
+    : > "$_WHATWEB_DIR/.karnel-wrapper"
     log_success "whatweb instalado"
     return 0
   fi
@@ -24,8 +25,10 @@ install_whatweb() {
 
 uninstall_whatweb() {
   log_info "Removendo whatweb..."
-  rm -f "$PREFIX/bin/whatweb"
-  rm -rf "$_WHATWEB_DIR"
+  if [ -f "$_WHATWEB_DIR/.karnel-wrapper" ]; then
+    [ "$(readlink "$PREFIX/bin/whatweb")" = "$_WHATWEB_DIR/whatweb" ] && rm -f "$PREFIX/bin/whatweb"
+    rm -rf "$_WHATWEB_DIR"
+  fi
   log_success "whatweb removido"
 }
 

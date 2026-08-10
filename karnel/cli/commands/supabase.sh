@@ -199,7 +199,7 @@ supabase_remote() {
   log_info "For full local development, use a Linux host:"
   echo
   list_item "1. SSH into a Linux VPS, Codespaces, or local Linux machine"
-  list_item "2. Install Docker: ${D_CYAN}curl -fsSL https://get.docker.com | sh${NC}"
+  list_item "2. Install Docker using the official Linux installation guide"
   list_item "3. Install Supabase CLI on that machine"
   list_item "4. Clone your project there"
   list_item "5. Run ${D_CYAN}supabase start${NC} for local stack"

@@ -223,7 +223,8 @@ _install_antigravity_proot_impl() {
     export SHELL=/bin/bash
     export TMPDIR=/tmp
     export HOME=/root
-    curl -fsSL https://antigravity.google/cli/install.sh | bash
+    echo "Antigravity Proot installation is unavailable because upstream does not publish a verifiable artifact." >&2
+    exit 1
   ' &>>"$LOG_FILE"
 
   local ubuntu_root
@@ -318,7 +319,7 @@ install_antigravity_cli() {
 
   read_select "Installation method" SELECTED_METHOD \
     "Native (recommended) - Compile with glibc support" \
-    "Proot-distro (alternative) - Ubuntu container"
+    "Proot-distro (unavailable: upstream has no verifiable artifact)"
 
   case "$SELECTED_METHOD" in
   *Native*)
@@ -391,7 +392,8 @@ _update_antigravity_cli_impl() {
     export SHELL=/bin/bash
     export TMPDIR=/tmp
     export HOME=/root
-    curl -fsSL https://antigravity.google/cli/install.sh | bash
+    echo "Antigravity Proot update is unavailable because upstream does not publish a verifiable artifact." >&2
+    exit 1
   ' &>>"$LOG_FILE"
 
   local ubuntu_root

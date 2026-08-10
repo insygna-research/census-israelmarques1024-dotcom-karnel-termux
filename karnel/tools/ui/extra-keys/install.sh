@@ -1,17 +1,23 @@
 #!/usr/bin/env bash
 
 import "@/utils/log"
+import "@/utils/uninstall"
 
 LOG_FILE="$KARNEL_CACHE/install_ui.log"
 TERMUX_DIR="$HOME/.termux"
+EXTRA_KEYS_BEGIN="# Karnel extra-keys begin"
+EXTRA_KEYS_END="# Karnel extra-keys end"
 
 _install_extra_keys_impl() {
 	mkdir -p "$(dirname "$LOG_FILE")" "$TERMUX_DIR"
 
-	cat >"$TERMUX_DIR/termux.properties" <<'EOF'
+	cat >>"$TERMUX_DIR/termux.properties" <<EOF
+
+$EXTRA_KEYS_BEGIN
 terminal-cursor-blink-rate=500
 
 extra-keys = [['ESC','</>','-','HOME',{key: 'UP', display: '▲'},'END','PGUP'], ['TAB','CTRL','ALT',{key: 'LEFT', display: '◀'},{key: 'DOWN', display: '▼'},{key: 'RIGHT', display: '▶'},'PGDN']]
+$EXTRA_KEYS_END
 EOF
 
 	log_success "Extra-keys configured"
@@ -21,7 +27,7 @@ EOF
 EXTRA_KEYS_MARKER="terminal-cursor-blink-rate=500"
 
 install_extra_keys() {
-	if grep -qF "$EXTRA_KEYS_MARKER" "$TERMUX_DIR/termux.properties" 2>/dev/null; then
+	if grep -qF "$EXTRA_KEYS_BEGIN" "$TERMUX_DIR/termux.properties" 2>/dev/null; then
 		log_info "Extra Keys already installed"
 		return 0
 	fi
@@ -30,8 +36,11 @@ install_extra_keys() {
 }
 
 _uninstall_extra_keys_impl() {
-	if [[ -f "$TERMUX_DIR/termux.properties" ]]; then
-		rm "$TERMUX_DIR/termux.properties"
+	if grep -qF "$EXTRA_KEYS_BEGIN" "$TERMUX_DIR/termux.properties" 2>/dev/null; then
+		if ! remove_marked_block "$TERMUX_DIR/termux.properties" "$EXTRA_KEYS_BEGIN" "$EXTRA_KEYS_END"; then
+			log_warn "Keeping malformed Karnel extra-keys configuration"
+			return 0
+		fi
 		log_success "Extra Keys uninstalled"
 	else
 		log_warn "Extra Keys not configured"
@@ -39,7 +48,7 @@ _uninstall_extra_keys_impl() {
 }
 
 uninstall_extra_keys() {
-	if ! grep -qF "$EXTRA_KEYS_MARKER" "$TERMUX_DIR/termux.properties" 2>/dev/null; then
+	if ! grep -qF "$EXTRA_KEYS_BEGIN" "$TERMUX_DIR/termux.properties" 2>/dev/null; then
 		log_info "Extra Keys is not installed"
 		return 0
 	fi

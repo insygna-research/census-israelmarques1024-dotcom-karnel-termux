@@ -1,5 +1,15 @@
 # Documentation Changelog
 
+## 4.13.11 - 2026-08-10
+
+- Hardened installers to preserve user-managed commands and data, with atomic
+  staging for downloaded payloads and native binaries.
+- Added verified plugin registry snapshots, npm release pinning, and regression
+  contracts for installers, ownership, and package postinstall behavior.
+- Added Android-compatible Railway installation through Ubuntu Proot and
+  verified Railway and Netlify CLI installation on Termux.
+- Synchronized CLI, GitHub README, npm metadata, and site documentation.
+
 ## 4.13.10 - 2026-08-06
 
 - Included root documentation in the npm package and synchronized help, TUI, and release assets.

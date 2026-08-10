@@ -60,21 +60,6 @@ _install_ai_tools_wrapper() {
 uninstall_ai() {
   import "@/tools/ai/all"
 
-  # Verifica se alguma ferramenta AI está instalada via AI_TOOLS_REGISTRY
-  local found=false
-  local _reg_entry _id _name _bins
-  for _reg_entry in "${AI_TOOLS_REGISTRY[@]}"; do
-    IFS=':' read -r _id _name _bins <<< "$_reg_entry"
-    local _first_bin="${_bins%%,*}"
-    if command -v "$_first_bin" &>/dev/null; then
-      found=true
-      break
-    fi
-  done
-  if [[ "$found" == "false" ]]; then
-    log_info "AI Tools are not installed"
-    return 0
-  fi
   separator
   box "Uninstalling AI Tools"
   separator

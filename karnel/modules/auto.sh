@@ -36,10 +36,6 @@ _install_auto_wrapper() {
 }
 
 uninstall_auto() {
-	if ! command -v n8n &>/dev/null; then
-		log_info "Automation Tools are not installed"
-		return 0
-	fi
 	separator
 	box "Uninstalling Automation Tools"
 	separator

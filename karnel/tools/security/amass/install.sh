@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+_AMASS_MARKER="$PREFIX/share/karnel-installers/amass"
+
 _amass_arch() {
   local arch
   arch="$(uname -m)"
@@ -11,7 +13,7 @@ _amass_arch() {
   esac
 }
 
-install_amass() {
+install_amass() (
   if command -v amass &>/dev/null; then
     log_info "amass já está instalado"
     return 2
@@ -22,28 +24,37 @@ install_amass() {
     return 0
   fi
 
-  local arch version url
+  local arch version url tmpdir archive amass_bin staged_bin
   arch=$(_amass_arch) || { log_error "Arquitetura não suportada"; return 1; }
   version=$(curl -fsSL "https://api.github.com/repos/owasp-amass/amass/releases/latest" 2>/dev/null | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
   [ -z "$version" ] && version="v4.2.0"
   url="https://github.com/owasp-amass/amass/releases/download/${version}/amass_linux_${arch}.zip"
 
-  curl -fsSL "$url" -o /tmp/amass.zip 2>/dev/null || return 1
-  unzip -o /tmp/amass.zip -d /tmp/amass 2>/dev/null
-  local amass_bin
-  amass_bin=$(find /tmp/amass -name "amass" -type f 2>/dev/null | head -1)
-  if [ -n "$amass_bin" ]; then
-    mv "$amass_bin" "$PREFIX/bin/amass"
-    chmod +x "$PREFIX/bin/amass"
-  fi
-  rm -rf /tmp/amass /tmp/amass.zip
+  tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/amass.XXXXXX") || return 1
+  staged_bin=""
+  trap 'rm -rf "$tmpdir"; [ -z "$staged_bin" ] || rm -f "$staged_bin"' EXIT
+  archive="$tmpdir/amass.zip"
+  curl -fsSL "$url" -o "$archive" 2>/dev/null || return 1
+  unzip -o "$archive" -d "$tmpdir" >/dev/null 2>&1 || return 1
+  amass_bin=$(find "$tmpdir" -name amass -type f -print -quit 2>/dev/null)
+  [ -n "$amass_bin" ] || { log_error "Pacote amass inválido"; return 1; }
+  mkdir -p "$PREFIX/bin" || return 1
+  staged_bin=$(mktemp "$PREFIX/bin/.amass.XXXXXX") || return 1
+  mv "$amass_bin" "$staged_bin" && chmod +x "$staged_bin" && [ -x "$staged_bin" ] || return 1
+  mv -f "$staged_bin" "$PREFIX/bin/amass" || return 1
+  staged_bin=""
+  mkdir -p "$(dirname "$_AMASS_MARKER")" || return 1
+  sha256sum "$PREFIX/bin/amass" > "$_AMASS_MARKER"
   log_success "amass instalado"
   return 0
-}
+)
 
 uninstall_amass() {
   log_info "Removendo amass..."
-  rm -f "$PREFIX/bin/amass"
+  if [ -f "$_AMASS_MARKER" ]; then
+    [ "$(sha256sum "$PREFIX/bin/amass" 2>/dev/null)" = "$(<"$_AMASS_MARKER")" ] && rm -f "$PREFIX/bin/amass"
+    rm -f "$_AMASS_MARKER"
+  fi
   log_success "amass removido"
 }
 

@@ -62,7 +62,6 @@ function main() {
   if (process.platform !== "linux") process.exit(0);
 
   const pm = detectPM();
-  if (!pm) process.exit(0);
 
   let changed = false;
 

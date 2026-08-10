@@ -370,7 +370,7 @@ _tui_list_menu() {
   local modules="ai db lang dev editor npm shell ui auto deploy games network utils osint voice plugin security"
   local choice
   choice=$(_dialog_menu "List Tools" "Select a module to list:" \
-    "ai" "AI Agents (39)" \
+    "ai" "AI Agents (41)" \
     "db" "Databases" \
     "lang" "Programming Languages" \
     "editor" "Code Editors" \

@@ -162,7 +162,8 @@ _install_mimocode_proot_impl() {
     export SHELL=/bin/bash
     export TMPDIR=/tmp
     export HOME=/root
-    curl -fsSL https://mimo.xiaomi.com/install | bash
+    echo "MiMo Code Proot installation is unavailable because upstream does not publish a verifiable artifact." >&2
+    exit 1
   ' &>>"$LOG_FILE"
 
   local ubuntu_root
@@ -205,7 +206,7 @@ install_mimocode() {
 
   read_select "Installation method" SELECTED_METHOD \
     "Native (recommended) - Compile with glibc support" \
-    "Proot-distro (alternative) - Ubuntu container"
+    "Proot-distro (unavailable: upstream has no verifiable artifact)"
 
   case "$SELECTED_METHOD" in
   *Native*)
@@ -267,7 +268,8 @@ _do_update_mimocode() {
     export SHELL=/bin/bash
     export TMPDIR=/tmp
     export HOME=/root
-    curl -fsSL https://mimo.xiaomi.com/install | bash
+    echo "MiMo Code Proot update is unavailable because upstream does not publish a verifiable artifact." >&2
+    exit 1
   ' &>>"$LOG_FILE"
 
   local ubuntu_root

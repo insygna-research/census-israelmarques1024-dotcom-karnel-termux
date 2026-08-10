@@ -16,6 +16,7 @@ install_dnsrecon() {
     pip install -r "$_DNSRECON_DIR/requirements.txt" 2>/dev/null
     chmod +x "$_DNSRECON_DIR/dnsrecon.py"
     ln -sf "$_DNSRECON_DIR/dnsrecon.py" "$PREFIX/bin/dnsrecon"
+    : > "$_DNSRECON_DIR/.karnel-wrapper"
     log_success "dnsrecon instalado"
     return 0
   fi
@@ -25,8 +26,10 @@ install_dnsrecon() {
 
 uninstall_dnsrecon() {
   log_info "Removendo dnsrecon..."
-  rm -f "$PREFIX/bin/dnsrecon"
-  rm -rf "$_DNSRECON_DIR"
+  if [ -f "$_DNSRECON_DIR/.karnel-wrapper" ]; then
+    [ "$(readlink "$PREFIX/bin/dnsrecon")" = "$_DNSRECON_DIR/dnsrecon.py" ] && rm -f "$PREFIX/bin/dnsrecon"
+    rm -rf "$_DNSRECON_DIR"
+  fi
   log_success "dnsrecon removido"
 }
 

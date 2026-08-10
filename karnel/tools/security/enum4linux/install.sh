@@ -15,6 +15,7 @@ install_enum4linux() {
   if git clone --depth 1 https://github.com/CiscoCXSecurity/enum4linux "$_ENUM4LINUX_DIR" 2>/dev/null; then
     chmod +x "$_ENUM4LINUX_DIR/enum4linux.pl"
     ln -sf "$_ENUM4LINUX_DIR/enum4linux.pl" "$PREFIX/bin/enum4linux"
+    : > "$_ENUM4LINUX_DIR/.karnel-wrapper"
     log_success "enum4linux instalado"
     return 0
   fi
@@ -24,8 +25,10 @@ install_enum4linux() {
 
 uninstall_enum4linux() {
   log_info "Removendo enum4linux..."
-  rm -f "$PREFIX/bin/enum4linux"
-  rm -rf "$_ENUM4LINUX_DIR"
+  if [ -f "$_ENUM4LINUX_DIR/.karnel-wrapper" ]; then
+    [ "$(readlink "$PREFIX/bin/enum4linux")" = "$_ENUM4LINUX_DIR/enum4linux.pl" ] && rm -f "$PREFIX/bin/enum4linux"
+    rm -rf "$_ENUM4LINUX_DIR"
+  fi
   log_success "enum4linux removido"
 }
 

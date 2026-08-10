@@ -16,7 +16,7 @@ Claude Code is Anthropic's AI-powered coding assistant that runs directly in you
 ## Dependencies
 
 - **Native mode:** glibc-repo, glibc, clang, curl, tar
-- **Proot mode:** proot-distro, curl, ca-certificates
+- **Proot mode:** proot-distro, ca-certificates, nodejs, npm
 
 ## Install
 
@@ -39,7 +39,6 @@ karnel update ai --claude-code
 ## Notes
 
 - Native installation (recommended): runs directly with glibc support via a C bootstrapper
-- Proot-distro (alternative): runs inside an Ubuntu container for compatibility
+- Proot-distro (alternative): runs the pinned `@anthropic-ai/claude-code@2.1.226` npm package inside an Ubuntu container
 - The installer will prompt you to select which method to use
 - Data directory: `~/.local/share/karnel-data/claude/`
-

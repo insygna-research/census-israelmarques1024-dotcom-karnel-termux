@@ -10,6 +10,33 @@ _omni_route_ok() {
   command -v omni-route &>/dev/null && omni-route --version &>/dev/null 2>&1
 }
 
+_omni_route_wrapper_is_karnel_owned() {
+  local wrapper="$1"
+  [[ -f "$wrapper" ]] && {
+    grep -qF '# Karnel-managed omniRoute wrapper' "$wrapper" ||
+      grep -qF 'exec node "$HOME/.karnel/packages/karnelroute/node_modules/karnelroute/bin/karnelroute.mjs" "$@"' "$wrapper"
+  }
+}
+
+_omni_route_install_wrapper() {
+  local cmd="$1" wrapper="$PREFIX/bin/$1"
+  if [[ -e "$wrapper" ]] && ! _omni_route_wrapper_is_karnel_owned "$wrapper"; then
+    log_warn "Keeping existing $cmd command not managed by Karnel"
+    return 1
+  fi
+  cat > "$wrapper" <<'WRAPPER'
+#!/data/data/com.termux/files/usr/bin/env bash
+# Karnel-managed omniRoute wrapper
+exec node "$HOME/.karnel/packages/karnelroute/node_modules/karnelroute/bin/karnelroute.mjs" "$@"
+WRAPPER
+  chmod +x "$wrapper"
+}
+
+_omni_route_remove_wrapper() {
+  local wrapper="$PREFIX/bin/$1"
+  _omni_route_wrapper_is_karnel_owned "$wrapper" && rm -f "$wrapper"
+}
+
 # Detect Termux / Android (Node reports platform "android" and uname mentions android)
 _omni_route_is_android() {
   if [ "$(node -e 'process.stdout.write(process.platform)' 2>/dev/null)" = "android" ]; then
@@ -82,13 +109,9 @@ install_omni_route() {
   local local_bin="$HOME/.karnel/packages/karnelroute/node_modules/karnelroute/bin/karnelroute.mjs"
   if [ -f "$local_bin" ]; then
     sed -i '1s|^#!/usr/bin/env node|#!/data/data/com.termux/files/usr/bin/node|' "$local_bin" 2>/dev/null
-    # Create both karnelroute (official) and omni-route (karnel wrapper)
+    # Create commands only when they are absent or were previously created by Karnel.
     for cmd in karnelroute omni-route; do
-      cat > "$PREFIX/bin/$cmd" <<'WRAPPER'
-#!/data/data/com.termux/files/usr/bin/env bash
-exec node "$HOME/.karnel/packages/karnelroute/node_modules/karnelroute/bin/karnelroute.mjs" "$@"
-WRAPPER
-      chmod +x "$PREFIX/bin/$cmd"
+      _omni_route_install_wrapper "$cmd" || true
     done
     _omni_route_apply_platform_fixes "$HOME/.karnel/packages/karnelroute"
     if _omni_route_ok; then
@@ -103,11 +126,7 @@ WRAPPER
   if command -v npm >/dev/null 2>&1 && npm i karnelroute --prefix "$HOME/.karnel/packages/karnelroute" 2>>"$LOG_FILE"; then
     sed -i '1s|^#!/usr/bin/env node|#!/data/data/com.termux/files/usr/bin/node|' "$local_bin" 2>/dev/null
     for cmd in karnelroute omni-route; do
-      cat > "$PREFIX/bin/$cmd" <<'WRAPPER'
-#!/data/data/com.termux/files/usr/bin/env bash
-exec node "$HOME/.karnel/packages/karnelroute/node_modules/karnelroute/bin/karnelroute.mjs" "$@"
-WRAPPER
-      chmod +x "$PREFIX/bin/$cmd"
+      _omni_route_install_wrapper "$cmd" || true
     done
     _omni_route_apply_platform_fixes "$HOME/.karnel/packages/karnelroute"
     if _omni_route_ok; then
@@ -116,27 +135,20 @@ WRAPPER
     fi
   fi
 
-  # Try npx as last resort
-  log_warn "npm failed, trying npx..."
-  if npx -y karnelroute --version &>/dev/null 2>&1; then
-    log_success "omniRoute available via npx"
-    return 0
-  fi
-
-  log_error "Failed to install omniRoute"
+  log_error "Failed to install omniRoute; see $LOG_FILE for npm output"
   return 1
 }
 
 uninstall_omni_route() {
-  if ! _omni_route_ok; then
+  if [[ ! -e "$PREFIX/bin/omni-route" && ! -d "$HOME/.karnel/packages/karnelroute" ]]; then
     log_info "omniRoute is not installed"
     return 0
   fi
 
   log_info "Uninstalling omniRoute..."
-  npm uninstall -g karnelroute &>>"$LOG_FILE"
   rm -rf "$HOME/.karnel/packages/karnelroute"
-  rm -f "$PREFIX/bin/karnelroute" "$PREFIX/bin/omni-route"
+  _omni_route_remove_wrapper karnelroute
+  _omni_route_remove_wrapper omni-route
   log_success "omniRoute uninstalled"
   return 0
 }
@@ -153,7 +165,11 @@ _do_update_omni_route() {
 
   if npm i karnelroute@latest --prefix "$HOME/.karnel/packages/karnelroute" 2>>"$LOG_FILE"; then
     _omni_route_apply_platform_fixes "$HOME/.karnel/packages/karnelroute"
-    return 0
+    if _omni_route_ok; then
+      return 0
+    fi
+    log_error "omniRoute update completed but the command does not run; see $LOG_FILE"
+    return 1
   else
     log_error "Failed to update omniRoute"
     return 1

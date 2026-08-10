@@ -23,9 +23,27 @@ golang:go
 EOF
 }
 
+_superfile_binary_owned() {
+  local marker="$SUPERFILE_DATA_DIR/.karnel-wrapper-spf"
+  [[ -f "$marker" && -f "$SUPERFILE_BIN" ]] || return 1
+  [[ "$(sha256sum "$SUPERFILE_BIN" 2>/dev/null)" == "$(<"$marker")" ]]
+}
+
+_superfile_verify_ownership() {
+  if [[ -e "$SUPERFILE_DATA_DIR" && ! -f "$SUPERFILE_DATA_DIR/.karnel-managed" ]]; then
+    log_error "Refusing to replace unowned data directory: $SUPERFILE_DATA_DIR"
+    return 1
+  fi
+  if [[ -e "$SUPERFILE_BIN" ]] && ! _superfile_binary_owned; then
+    log_error "Refusing to replace unowned command: $SUPERFILE_BIN"
+    return 1
+  fi
+}
+
 _build_superfile() {
-  local staging_dir old_dir
-  mkdir -p "$KARNEL_DATA" "$PREFIX/bin" "${KARNEL_CACHE}"
+	local staging_dir old_dir temporary_bin
+	mkdir -p "$KARNEL_DATA" "$PREFIX/bin" "${KARNEL_CACHE}"
+	_superfile_verify_ownership || return 1
   staging_dir="$(mktemp -d "$KARNEL_DATA/.superfile.XXXXXX")" || return 1
 
   if ! git clone --depth 1 --branch "$SUPERFILE_VERSION" "$SUPERFILE_REPOSITORY" "$staging_dir/source" &>>"$KARNEL_CACHE/install_utils.log" ||
@@ -37,17 +55,23 @@ _build_superfile() {
     return 1
   fi
 
-  old_dir="$KARNEL_DATA/.superfile.previous.$$"
+	old_dir="$KARNEL_DATA/.superfile.previous.$$"
   if [[ -d "$SUPERFILE_DATA_DIR" ]]; then
     mv "$SUPERFILE_DATA_DIR" "$old_dir" || { rm -rf "$staging_dir"; return 1; }
   fi
-  if ! mv "$staging_dir/source" "$SUPERFILE_DATA_DIR" || ! mv -f "$staging_dir/spf" "$SUPERFILE_BIN"; then
-    rm -rf "$staging_dir" "$SUPERFILE_DATA_DIR"
-    [[ -d "$old_dir" ]] && mv "$old_dir" "$SUPERFILE_DATA_DIR"
-    log_error "Failed to replace SuperFile"
-    return 1
-  fi
-  rm -rf "$staging_dir" "$old_dir"
+	temporary_bin="$(mktemp "$PREFIX/bin/.spf.XXXXXX")" || { rm -rf "$staging_dir"; return 1; }
+	if ! mv "$staging_dir/source" "$SUPERFILE_DATA_DIR" ||
+		! install -m 755 "$staging_dir/spf" "$temporary_bin" ||
+		! mv -f "$temporary_bin" "$SUPERFILE_BIN"; then
+		rm -f "$temporary_bin"
+		rm -rf "$staging_dir" "$SUPERFILE_DATA_DIR"
+		[[ -d "$old_dir" ]] && mv "$old_dir" "$SUPERFILE_DATA_DIR"
+		log_error "Failed to replace SuperFile"
+		return 1
+	fi
+	sha256sum "$SUPERFILE_BIN" >"$SUPERFILE_DATA_DIR/.karnel-wrapper-spf" || return 1
+	: >"$SUPERFILE_DATA_DIR/.karnel-managed"
+	rm -rf "$staging_dir" "$old_dir"
 }
 
 install_superfile() {
@@ -69,9 +93,13 @@ uninstall_superfile() {
   fi
 
   log_info "Uninstalling SuperFile..."
-  if ! rm -f "$SUPERFILE_BIN" || ! rm -rf "$SUPERFILE_DATA_DIR"; then
-    log_error "Failed to uninstall SuperFile"
-    return 1
+	if _superfile_binary_owned && ! rm -f "$SUPERFILE_BIN"; then
+		log_error "Failed to remove SuperFile command"
+		return 1
+	fi
+	if [[ -f "$SUPERFILE_DATA_DIR/.karnel-managed" ]] && ! rm -rf "$SUPERFILE_DATA_DIR"; then
+		log_error "Failed to uninstall SuperFile"
+		return 1
   fi
   log_success "SuperFile uninstalled"
 }

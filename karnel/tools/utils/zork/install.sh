@@ -4,7 +4,8 @@ import "@/utils/log"
 import "@/utils/version"
 
 LOG_FILE="$KARNEL_CACHE/install_zork.log"
-ZORK_DATA_DIR="$HOME/.local/share/karnel-data/zork"
+ZORK_DATA_DIR="${KARNEL_DATA:-${XDG_DATA_HOME:-$HOME/.local/share}/karnel-data}/zork"
+ZORK_MARKER="$ZORK_DATA_DIR/.karnel-installed"
 
 ZORK_URLS=(
   "1:https://www.infocom-if.org/downloads/zork1.zip"
@@ -36,24 +37,33 @@ _download_zork_data() {
   loading "Downloading Zork games" _download_zork_data_impl
 }
 
+_zork_owned() {
+  [[ -f "$ZORK_MARKER" && -f "$PREFIX/bin/zork" ]] || return 1
+  [[ "$(sha256sum "$PREFIX/bin/zork" 2>/dev/null)" == "$(<"$ZORK_MARKER")" ]]
+}
+
 _download_zork_data_impl() {
-  mkdir -p "$ZORK_DATA_DIR"
+  local staging_dir old_dir
+  if [[ -e "$ZORK_DATA_DIR" && ! -f "$ZORK_MARKER" ]]; then
+    log_error "Refusing to replace unowned Zork data: $ZORK_DATA_DIR"
+    return 1
+  fi
+  mkdir -p "$(dirname "$ZORK_DATA_DIR")"
+  staging_dir=$(mktemp -d "$(dirname "$ZORK_DATA_DIR")/.zork.XXXXXX") || return 1
 
   for entry in "${ZORK_URLS[@]}"; do
     local num="${entry%%:*}"
     local url="${entry#*:}"
-    local zip_file="$ZORK_DATA_DIR/zork${num}.zip"
-
-    if [ -f "$ZORK_DATA_DIR/DATA/ZORK${num}.DAT" ]; then
-      continue
-    fi
+    local zip_file="$staging_dir/zork${num}.zip"
 
     if ! curl -sSfL "$url" -o "$zip_file" 2>>"$LOG_FILE"; then
+      rm -rf "$staging_dir"
       log_error "Failed to download Zork ${num}"
       return 1
     fi
 
-    if ! unzip -o "$zip_file" -d "$ZORK_DATA_DIR" 2>>"$LOG_FILE"; then
+    if ! unzip -o "$zip_file" -d "$staging_dir" 2>>"$LOG_FILE"; then
+      rm -rf "$staging_dir"
       log_error "Failed to extract Zork ${num}"
       return 1
     fi
@@ -61,14 +71,42 @@ _download_zork_data_impl() {
     rm -f "$zip_file"
   done
 
+  for entry in "${ZORK_URLS[@]}"; do
+    local num="${entry%%:*}"
+    if [ ! -f "$staging_dir/DATA/ZORK${num}.DAT" ]; then
+      rm -rf "$staging_dir"
+      log_error "Zork ${num} data not found after extraction"
+      return 1
+    fi
+  done
+
+  old_dir="${ZORK_DATA_DIR}.previous.$$"
+  if [ -d "$ZORK_DATA_DIR" ] && ! mv "$ZORK_DATA_DIR" "$old_dir"; then
+    rm -rf "$staging_dir"
+    return 1
+  fi
+  if ! mv "$staging_dir" "$ZORK_DATA_DIR"; then
+    [[ -d "$old_dir" ]] && mv "$old_dir" "$ZORK_DATA_DIR"
+    return 1
+  fi
+  if [[ -f "$PREFIX/bin/zork" ]] && ! sha256sum "$PREFIX/bin/zork" >"$ZORK_MARKER"; then
+    log_error "Failed to record Zork command ownership"
+    return 1
+  fi
+  rm -rf "$old_dir"
+
   return 0
 }
 
 _create_zork_wrapper() {
   local wrapper="$PREFIX/bin/zork"
+  if [[ -e "$wrapper" ]] && ! _zork_owned; then
+    log_error "Refusing to replace unowned Zork command: $wrapper"
+    return 1
+  fi
   cat > "$wrapper" << 'WRAPPER'
 #!/usr/bin/env bash
-ZORK_DIR="$HOME/.local/share/karnel-data/zork"
+ZORK_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/karnel-data/zork"
 ROM_DIR="$ZORK_DIR/DATA"
 
 if [ ! -d "$ROM_DIR" ]; then
@@ -87,12 +125,17 @@ shift 2>/dev/null || true
 exec frotz "$ROM_DIR/$game" "$@"
 WRAPPER
   chmod +x "$wrapper"
+  sha256sum "$wrapper" >"$ZORK_MARKER"
 }
 
 install_zork() {
   if command -v zork &>/dev/null; then
     log_info "Zork is already installed"
     return 2
+  fi
+  if [[ -e "$PREFIX/bin/zork" ]] && ! _zork_owned; then
+    log_error "Refusing to replace unowned Zork command: $PREFIX/bin/zork"
+    return 1
   fi
   log_info "Installing Zork..."
 
@@ -106,13 +149,13 @@ install_zork() {
 }
 
 uninstall_zork() {
-  if ! command -v zork &>/dev/null; then
-    log_info "Zork is not installed"
+  if ! _zork_owned; then
+    log_info "Zork is not installed by Karnel"
     return 2
   fi
   log_info "Uninstalling Zork..."
 
-  rm -f "$PREFIX/bin/zork"
+  rm -f "$PREFIX/bin/zork" "$ZORK_MARKER"
   rm -rf "$ZORK_DATA_DIR"
 
   log_success "Zork uninstalled"
@@ -121,7 +164,6 @@ uninstall_zork() {
 
 update_zork() {
   log_info "Updating Zork..."
-  rm -rf "$ZORK_DATA_DIR"
   _download_zork_data || return 1
   log_success "Zork updated"
   return 0

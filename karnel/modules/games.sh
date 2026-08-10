@@ -29,10 +29,6 @@ install_games() {
 }
 
 uninstall_games() {
-  if ! command -v buzz &>/dev/null && ! command -v ctfgod &>/dev/null; then
-    log_info "Games are not installed"
-    return 0
-  fi
   separator
   box "Uninstalling Games"
   separator

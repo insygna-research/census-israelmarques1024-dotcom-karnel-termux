@@ -8,22 +8,27 @@ trap 'rm -rf "$TEST_ROOT"' EXIT
 pass=0
 
 assert_keelcode_lifecycle() (
-  export PATH="$TEST_ROOT/prefix/bin:$PATH"
+  export PREFIX="$TEST_ROOT/prefix"
   export KARNEL_CACHE="$TEST_ROOT/cache"
+  export KARNEL_DATA="$TEST_ROOT/data"
   mkdir -p "$KARNEL_CACHE" "$TEST_ROOT/prefix/bin"
+  export PATH="$TEST_ROOT/prefix/bin"
   import() { :; }
   log_info() { :; }
   log_success() { :; }
   log_error() { :; }
+  tail() { :; }
+  rm() { /data/data/com.termux/files/usr/bin/rm "$@"; }
   npm() {
     case "$1" in
-    install) touch "$TEST_ROOT/prefix/bin/keelcode"; chmod +x "$TEST_ROOT/prefix/bin/keelcode" ;;
-    uninstall) rm -f "$TEST_ROOT/prefix/bin/keelcode" ;;
+    install) printf '#!/usr/bin/env bash\nexit 0\n' >"$TEST_ROOT/prefix/bin/keelcode"; /data/data/com.termux/files/usr/bin/chmod +x "$TEST_ROOT/prefix/bin/keelcode" ;;
+    uninstall) /data/data/com.termux/files/usr/bin/rm -f "$TEST_ROOT/prefix/bin/keelcode" ;;
     update) : ;;
     esac
   }
   # shellcheck source=../karnel/tools/ai/keelcode/install.sh
   source "$ROOT_DIR/karnel/tools/ai/keelcode/install.sh"
+  _keelcode_install_termux_wrapper() { :; }
 
   install_keelcode
   command -v keelcode >/dev/null
@@ -31,6 +36,34 @@ assert_keelcode_lifecycle() (
   ! command -v keelcode
 )
 assert_keelcode_lifecycle
+((pass += 1))
+
+assert_banner_bash_startup() (
+  export HOME="$TEST_ROOT/banner-home"
+  export PREFIX="$TEST_ROOT/banner-prefix"
+  export KARNEL_CACHE="$TEST_ROOT/banner-cache"
+  export KARNEL_UTILS="$ROOT_DIR/karnel/utils"
+  mkdir -p "$HOME" "$PREFIX/etc" "$KARNEL_CACHE"
+  import() { :; }
+  log_info() { :; }
+  log_success() { :; }
+  log_warn() { :; }
+  log_error() { :; }
+  loading() { "$2"; }
+  source "$ROOT_DIR/karnel/utils/uninstall.sh"
+  # shellcheck source=../karnel/tools/ui/banner/install.sh
+  source "$ROOT_DIR/karnel/tools/ui/banner/install.sh"
+  _backup_motd() { :; }
+
+  : >"$HOME/.bashrc"
+  install_banner
+  grep -qF 'render_banner' "$HOME/.bashrc"
+  grep -qF 'elif [[ $- == *i* && -z "${KARNEL_BANNER_SESSION_SHOWN:-}" ]]; then' "$HOME/.bashrc"
+  grep -qF "$KARNEL_BANNER_END_MARKER" "$HOME/.bashrc"
+  uninstall_banner
+  ! grep -qF "$KARNEL_BANNER_MARKER" "$HOME/.bashrc"
+)
+assert_banner_bash_startup
 ((pass += 1))
 
 assert_superfile_staged_build() (
@@ -77,6 +110,286 @@ assert_superfile_staged_build() (
   [[ ! -e "$PREFIX/bin/spf" && ! -d "$KARNEL_DATA/superfile" ]]
 )
 assert_superfile_staged_build
+((pass += 1))
+
+assert_downloaded_utils_keep_source_payloads() (
+  export PREFIX="$TEST_ROOT/downloaded-utils-prefix"
+  export KARNEL_CACHE="$TEST_ROOT/downloaded-utils-cache"
+  export KARNEL_DATA="$TEST_ROOT/downloaded-utils-data"
+  export KARNEL_PATH="$ROOT_DIR/karnel"
+  export PATH="$PREFIX/bin:$PATH"
+  mkdir -p "$PREFIX/bin" "$KARNEL_CACHE"
+  import() { :; }
+  log_info() { :; }
+  log_success() { :; }
+  pkg() { :; }
+  command() {
+    if [[ "$1" == "-v" ]]; then
+      case "$2" in
+        applaunch|filecheck|fconv|notes|passman|qrcode|splash|treex|websites) return 1 ;;
+      esac
+    fi
+    builtin command "$@"
+  }
+  curl() {
+    local output="" arg previous=""
+    for arg in "$@"; do
+      [[ "$previous" == "-o" ]] && output="$arg"
+      previous="$arg"
+    done
+    printf '#!/usr/bin/env python3\nprint("runtime payload")\n' >"$output"
+  }
+  source "$ROOT_DIR/karnel/utils/downloaded-python.sh"
+
+  local tool function_name source_payload source_checksum runtime_payload
+  for tool in applaunch filecheck fconv notes passman qrcode splash treex websites; do
+    source_payload="$ROOT_DIR/karnel/tools/utils/$tool/$tool.py"
+    source_checksum=$(cksum "$source_payload")
+    runtime_payload="$KARNEL_DATA/utils/$tool/$tool.py"
+    # shellcheck source=/dev/null
+    source "$ROOT_DIR/karnel/tools/utils/$tool/install.sh"
+    function_name="install_${tool//-/_}"
+    "$function_name"
+    [[ -L "$PREFIX/bin/$tool" ]]
+    [[ "$(readlink "$PREFIX/bin/$tool")" == "$runtime_payload" ]]
+    [[ -f "$runtime_payload" ]]
+    [[ "$(<"$runtime_payload")" == "#!$(command -v python3)"$'\n'* ]]
+    function_name="update_${tool//-/_}"
+    "$function_name"
+    [[ "$(<"$runtime_payload")" == "#!$(command -v python3)"$'\n'* ]]
+    [[ "$source_checksum" == "$(cksum "$source_payload")" ]]
+    function_name="uninstall_${tool//-/_}"
+    "$function_name"
+    [[ ! -e "$PREFIX/bin/$tool" && ! -e "$KARNEL_DATA/utils/$tool" ]]
+    [[ "$source_checksum" == "$(cksum "$source_payload")" ]]
+  done
+)
+assert_downloaded_utils_keep_source_payloads
+((pass += 1))
+
+assert_omni_route_preserves_unowned_wrappers() (
+  export HOME="$TEST_ROOT/omni-route-home"
+  export PREFIX="$TEST_ROOT/omni-route-prefix"
+  export KARNEL_CACHE="$TEST_ROOT/omni-route-cache"
+  export PATH="$PREFIX/bin:$PATH"
+  mkdir -p "$HOME/.karnel/packages/karnelroute/node_modules/karnelroute/bin" "$PREFIX/bin" "$KARNEL_CACHE"
+  printf '#!/usr/bin/env bash\nexit 1\n' >"$PREFIX/bin/omni-route"
+  printf '#!/usr/bin/env bash\nexit 1\n' >"$PREFIX/bin/karnelroute"
+  chmod +x "$PREFIX/bin/omni-route" "$PREFIX/bin/karnelroute"
+  printf '#!/usr/bin/env node\n' >"$HOME/.karnel/packages/karnelroute/node_modules/karnelroute/bin/karnelroute.mjs"
+  import() { :; }
+  log_info() { :; }
+  log_success() { :; }
+  log_warn() { :; }
+  log_error() { :; }
+  npm() { return 1; }
+  # shellcheck source=../karnel/tools/ai/omni-route/install.sh
+  source "$ROOT_DIR/karnel/tools/ai/omni-route/install.sh"
+
+  if install_omni_route; then
+    return 1
+  fi
+  grep -qF 'exit 1' "$PREFIX/bin/omni-route"
+  grep -qF 'exit 1' "$PREFIX/bin/karnelroute"
+  rm -f "$PREFIX/bin/omni-route" "$PREFIX/bin/karnelroute"
+  _omni_route_install_wrapper omni-route
+  _omni_route_install_wrapper karnelroute
+  uninstall_omni_route
+  [[ ! -e "$PREFIX/bin/omni-route" && ! -e "$PREFIX/bin/karnelroute" ]]
+)
+assert_omni_route_preserves_unowned_wrappers
+((pass += 1))
+
+assert_turbopack_stages_and_preserves_unowned_wrappers() (
+	  export HOME="$TEST_ROOT/turbopack-home"
+  export PREFIX="$TEST_ROOT/turbopack-prefix"
+  export KARNEL_CACHE="$TEST_ROOT/turbopack-cache"
+  export KARNEL_DATA="$TEST_ROOT/turbopack-data"
+  export KARNEL_PATH="$ROOT_DIR/karnel"
+  export PATH="$PREFIX/bin:$PATH"
+  mkdir -p "$PREFIX/bin" "$KARNEL_CACHE"
+  import() { :; }
+  log_info() { :; }
+  log_success() { :; }
+  log_error() { :; }
+  log_warn() { :; }
+  loading() { shift; "$@"; }
+  read_confirm_default() { REINSTALL=y; }
+  # shellcheck source=../karnel/tools/npm/turbopack/install.sh
+  source "$ROOT_DIR/karnel/tools/npm/turbopack/install.sh"
+  _install_deps() { :; }
+  _download() {
+    mkdir -p "$1/bin"
+    printf '#!/usr/bin/env bash\nexit 0\n' >"$1/bin/node"
+    chmod +x "$1/bin/node"
+  }
+  _strip() { cp "$1/bin/node" "$1/bin/node.stripped"; }
+  _patch() { mv "$1/bin/node.stripped" "$1/bin/node"; }
+
+  install_turbopack
+  [[ -f "$TURBO_DATA_DIR/.karnel-managed" ]]
+  [[ -f "$TURBO_DATA_DIR/.karnel-wrapper-node-glibc" ]]
+  [[ -x "$PREFIX/bin/node-glibc" && -x "$PREFIX/bin/next-turbopack" ]]
+  printf '#!/usr/bin/env bash\nexit 1\n' >"$PREFIX/bin/node-glibc"
+  uninstall_turbopack
+  [[ -e "$PREFIX/bin/node-glibc" ]]
+  [[ ! -e "$PREFIX/bin/next-turbopack" && ! -e "$TURBO_DATA_DIR" ]]
+)
+assert_turbopack_stages_and_preserves_unowned_wrappers
+((pass += 1))
+
+assert_kilocode_ownership_and_staging() (
+  export HOME="$TEST_ROOT/kilocode-home"
+  export PREFIX="$TEST_ROOT/kilocode-prefix"
+  export KARNEL_CACHE="$TEST_ROOT/kilocode-cache"
+  export KARNEL_DATA="$TEST_ROOT/kilocode-data"
+  export KARNEL_PATH="$ROOT_DIR/karnel"
+  export PATH="$PREFIX/bin:$PATH"
+  mkdir -p "$HOME" "$PREFIX/bin" "$KARNEL_CACHE"
+  import() { :; }
+  log_info() { :; }
+  log_success() { :; }
+  log_warn() { :; }
+  log_error() { :; }
+  loading() { shift; "$@"; }
+  curl() { : >"${@: -1}"; }
+  tar() { printf '#!/usr/bin/env bash\nexit 0\n' >"$4/kilo"; }
+  cc() { local output="${3}"; printf '#!/usr/bin/env bash\nexit 0\n' >"$output"; }
+  # shellcheck source=../karnel/tools/ai/kilocode-cli/install.sh
+  source "$ROOT_DIR/karnel/tools/ai/kilocode-cli/install.sh"
+  _install_kilocode_deps() { :; }
+  _get_latest_kilocode_version() { printf 'v1.0.0\n'; }
+
+  install_kilocode_cli
+  [[ -x "$KILOCODE_DATA_DIR/kilo" && -f "$KILOCODE_DATA_DIR/.karnel-managed" ]]
+  [[ -f "$KILOCODE_DATA_DIR/.karnel-wrapper-kilocode" && -L "$PREFIX/bin/kilo" ]]
+  uninstall_kilocode_cli
+  [[ ! -e "$KILOCODE_DATA_DIR" && ! -e "$PREFIX/bin/kilocode" && ! -e "$PREFIX/bin/kilo" ]]
+
+  mkdir -p "$KILOCODE_DATA_DIR"
+  : >"$KILOCODE_DATA_DIR/kilo"
+  if install_kilocode_cli; then return 1; fi
+  [[ -f "$KILOCODE_DATA_DIR/kilo" ]]
+  printf 'unowned\n' >"$PREFIX/bin/kilocode"
+  printf 'unowned\n' >"$PREFIX/bin/kilo"
+  uninstall_kilocode_cli
+  [[ -f "$PREFIX/bin/kilocode" && -f "$PREFIX/bin/kilo" && -d "$KILOCODE_DATA_DIR" ]]
+)
+assert_kilocode_ownership_and_staging
+((pass += 1))
+
+assert_odysseus_ownership() (
+  export HOME="$TEST_ROOT/odysseus-home"
+  export PREFIX="$TEST_ROOT/odysseus-prefix"
+  export KARNEL_CACHE="$TEST_ROOT/odysseus-cache"
+  export PATH="$PREFIX/bin:$PATH"
+  local ubuntu_root="$TEST_ROOT/odysseus-ubuntu"
+  mkdir -p "$HOME" "$PREFIX/bin" "$KARNEL_CACHE" "$ubuntu_root/root/odysseus"
+  import() { :; }
+  log_info() { :; }
+  log_success() { :; }
+  log_warn() { :; }
+  log_error() { :; }
+  loading() { shift; "$@"; }
+  # shellcheck source=../karnel/tools/ai/odysseus/install.sh
+  source "$ROOT_DIR/karnel/tools/ai/odysseus/install.sh"
+  _odysseus_detect_ubuntu_root() { printf '%s\n' "$ubuntu_root"; }
+  _odysseus_dependencies() { return 1; }
+
+  if install_odysseus; then return 1; fi
+  [[ -d "$ubuntu_root/root/odysseus" ]]
+  : >"$ubuntu_root/root/odysseus/.karnel-managed"
+  mkdir -p "$ODYSSEUS_DATA_DIR"
+  printf 'managed\n' >"$PREFIX/bin/odysseus"
+  sha256sum "$PREFIX/bin/odysseus" >"$ODYSSEUS_DATA_DIR/.karnel-wrapper-odysseus"
+  : >"$ODYSSEUS_DATA_DIR/.karnel-managed"
+  uninstall_odysseus
+  [[ ! -e "$PREFIX/bin/odysseus" && ! -e "$ODYSSEUS_DATA_DIR" && ! -e "$ubuntu_root/root/odysseus" ]]
+
+  mkdir -p "$ODYSSEUS_DATA_DIR" "$ubuntu_root/root/odysseus"
+  printf 'unowned\n' >"$PREFIX/bin/odysseus"
+  uninstall_odysseus
+  [[ -f "$PREFIX/bin/odysseus" && -d "$ODYSSEUS_DATA_DIR" && -d "$ubuntu_root/root/odysseus" ]]
+)
+assert_odysseus_ownership
+((pass += 1))
+
+assert_downloaded_games_and_network_installers() (
+  export PREFIX="$TEST_ROOT/downloaded-python-prefix"
+  export KARNEL_CACHE="$TEST_ROOT/downloaded-python-cache"
+  export KARNEL_DATA="$TEST_ROOT/downloaded-python-data"
+  export KARNEL_PATH="$ROOT_DIR/karnel"
+  export PATH="$PREFIX/bin:$PATH"
+  mkdir -p "$PREFIX/bin" "$KARNEL_CACHE"
+  import() { :; }
+  log_info() { :; }
+  log_success() { :; }
+  log_error() { :; }
+  pkg() { :; }
+  curl_failure=0
+  curl() {
+    local output="" previous="" arg
+    (( curl_failure == 0 )) || return 1
+    for arg in "$@"; do
+      [[ "$previous" == "-o" ]] && output="$arg"
+      previous="$arg"
+    done
+    printf '#!/usr/bin/env python3\nprint("runtime payload")\n' >"$output"
+  }
+  # shellcheck source=../karnel/utils/downloaded-python.sh
+  source "$ROOT_DIR/karnel/utils/downloaded-python.sh"
+
+  local tool installer install_function update_function uninstall_function runtime_payload source_payload
+  local -a specs=(
+    'buzz:karnel/tools/games/buzz/install.sh'
+    'arcade:karnel/tools/games/arcade/install.sh'
+    'ctfgod:karnel/tools/games/ctfgod/install.sh'
+    'detective:karnel/tools/games/detective/install.sh'
+    'pet-friends:karnel/tools/games/pet-friends/install.sh'
+    'tamagotchi:karnel/tools/games/tamagotchi/install.sh'
+    'dark:karnel/tools/network/dark/install.sh'
+    'dedsec-network:karnel/tools/network/dedsec-network/install.sh'
+  )
+  local spec
+  for spec in "${specs[@]}"; do
+    tool=${spec%%:*}
+    installer=${spec#*:}
+    install_function="install_${tool//-/_}"
+    update_function="update_${tool//-/_}"
+    uninstall_function="uninstall_${tool//-/_}"
+    runtime_payload="$KARNEL_DATA/${installer#karnel/tools/}"
+    runtime_payload="${runtime_payload%/install.sh}/$tool.py"
+    source_payload="$KARNEL_PATH/tools/${installer#karnel/tools/}"
+    source_payload="${source_payload%/install.sh}/$tool.py"
+    # shellcheck source=/dev/null
+    source "$ROOT_DIR/$installer"
+
+    printf 'external wrapper\n' >"$PREFIX/bin/$tool"
+    if "$install_function"; then return 1; fi
+    grep -qF 'external wrapper' "$PREFIX/bin/$tool"
+    rm -f "$PREFIX/bin/$tool"
+
+    "$install_function"
+    [[ -L "$PREFIX/bin/$tool" && "$(readlink "$PREFIX/bin/$tool")" == "$runtime_payload" ]]
+    [[ -f "$runtime_payload" && ! -e "$source_payload" ]]
+    local payload_before
+    payload_before=$(<"$runtime_payload")
+    curl_failure=1
+    if "$update_function"; then return 1; fi
+    [[ "$payload_before" == "$(<"$runtime_payload")" ]]
+    curl_failure=0
+    "$uninstall_function"
+    [[ ! -e "$PREFIX/bin/$tool" && ! -e "${runtime_payload%/*}" ]]
+
+    "$install_function"
+    rm -f "$PREFIX/bin/$tool"
+    printf 'external wrapper\n' >"$PREFIX/bin/$tool"
+    "$uninstall_function" || [[ $? -eq 2 ]]
+    [[ -f "$PREFIX/bin/$tool" && -f "$runtime_payload" ]]
+    rm -rf "$PREFIX/bin/$tool" "${runtime_payload%/*}"
+  done
+)
+assert_downloaded_games_and_network_installers
 ((pass += 1))
 
 printf 'Tool installer contracts: %d passed\n' "$pass"

@@ -29,10 +29,6 @@ install_utils() {
 }
 
 uninstall_utils() {
-  if ! command -v fconv &>/dev/null && ! command -v notes &>/dev/null; then
-    log_info "Utility Tools are not installed"
-    return 0
-  fi
   separator
   box "Uninstalling Utility Tools"
   separator

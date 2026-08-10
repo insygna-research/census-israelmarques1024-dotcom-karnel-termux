@@ -39,10 +39,6 @@ _install_osint_wrapper() {
 
 uninstall_osint() {
 	_robin_print_disclaimer
-  if [[ ! -d "$KARNEL_TOOLS/osint" ]]; then
-    log_info "OSINT tools are not installed"
-    return 0
-  fi
   separator
   box "Uninstalling OSINT Tools"
   separator

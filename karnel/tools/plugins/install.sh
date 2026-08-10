@@ -1,7 +1,9 @@
 # shellcheck shell=bash
 
 PLUGINS_DIR="${KARNEL_DATA}/plugins"
-PLUGIN_REGISTRY_URL="https://raw.githubusercontent.com/israelmarques1024-dotcom/karnel-plugins/main/registry.json"
+PLUGIN_REGISTRY_COMMIT="561780eb76b10ddac161fe5eeec6e5a4dd0db2f2"
+PLUGIN_REGISTRY_SHA256="a2fdad6519b5e6b979a7e6df21250bd348012df90c6cf79ccd946d1568edb40c"
+PLUGIN_REGISTRY_URL="https://raw.githubusercontent.com/israelmarques1024-dotcom/karnel-plugins/${PLUGIN_REGISTRY_COMMIT}/registry.json"
 PLUGIN_DISPATCH_FOUND=0
 PLUGIN_SEMVER_RE='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(\.(0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*))?(\+([0-9A-Za-z-]+)(\.[0-9A-Za-z-]+)*)?$'
 
@@ -392,6 +394,20 @@ _plugin_file_sha256() {
   printf '%s\n' "${result%% *}"
 }
 
+_plugin_verify_registry_checksum() {
+  local registry="$1"
+  local checksum
+
+  if ! checksum="$(_plugin_file_sha256 "$registry")"; then
+    return 1
+  fi
+
+  if [[ "$checksum" != "$PLUGIN_REGISTRY_SHA256" ]]; then
+    log_error "Plugin registry checksum verification failed."
+    return 1
+  fi
+}
+
 _plugin_payload_checksum() {
   local plugin_root="$1"
   local file relative file_hash checksum_line
@@ -742,6 +758,7 @@ _plugin_fetch_registry() {
     return 1
   fi
 
+  _plugin_verify_registry_checksum "$destination" || return 1
   _plugin_validate_registry "$destination"
 }
 

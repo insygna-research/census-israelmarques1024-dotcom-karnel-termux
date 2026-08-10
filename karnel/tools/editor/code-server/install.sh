@@ -27,16 +27,20 @@ install_code_server() {
   local rc=$?
 
   if [[ $rc -eq 0 ]] && command -v code-server &>/dev/null; then
-    # Configure code-server with password
+    # Do not replace a user-managed configuration or its password.
     mkdir -p "$HOME/.config/code-server"
     chmod 700 "$HOME/.config/code-server"
-    cat > "$HOME/.config/code-server/config.yaml" << CONF
+    if [[ ! -f "$HOME/.config/code-server/config.yaml" ]]; then
+      cat > "$HOME/.config/code-server/config.yaml" << CONF
 bind-addr: 127.0.0.1:8080
 auth: password
 password: ${CODE_SERVER_PASSWORD}
 cert: false
 CONF
-    chmod 600 "$HOME/.config/code-server/config.yaml"
+      chmod 600 "$HOME/.config/code-server/config.yaml"
+    else
+      log_info "Keeping existing code-server configuration"
+    fi
     log_success "code-server installed successfully"
     log_info "Run: code-server"
     log_info "Then open http://localhost:8080 in your browser"

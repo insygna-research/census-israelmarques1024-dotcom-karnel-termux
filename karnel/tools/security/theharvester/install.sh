@@ -16,6 +16,7 @@ install_theharvester() {
     pip install -r "$_THEHARVESTER_DIR/requirements/base.txt" 2>/dev/null
     chmod +x "$_THEHARVESTER_DIR/theHarvester.py"
     ln -sf "$_THEHARVESTER_DIR/theHarvester.py" "$PREFIX/bin/theharvester"
+    : > "$_THEHARVESTER_DIR/.karnel-wrapper"
     log_success "theharvester instalado"
     return 0
   fi
@@ -25,8 +26,10 @@ install_theharvester() {
 
 uninstall_theharvester() {
   log_info "Removendo theHarvester..."
-  rm -f "$PREFIX/bin/theharvester"
-  rm -rf "$_THEHARVESTER_DIR"
+  if [ -f "$_THEHARVESTER_DIR/.karnel-wrapper" ]; then
+    [ "$(readlink "$PREFIX/bin/theharvester")" = "$_THEHARVESTER_DIR/theHarvester.py" ] && rm -f "$PREFIX/bin/theharvester"
+    rm -rf "$_THEHARVESTER_DIR"
+  fi
   log_success "theharvester removido"
 }
 

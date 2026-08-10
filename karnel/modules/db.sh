@@ -45,10 +45,6 @@ _install_db_tools_wrapper() {
 }
 
 uninstall_db() {
-	if ! command -v postgres &>/dev/null; then
-		log_info "Databases are not installed"
-		return 0
-	fi
 	separator
 	box "Uninstalling Databases"
 	separator

@@ -72,20 +72,21 @@ _download_omp_binary() {
 }
 
 _download_omp_binary_impl() {
+  local target_dir="${1:-$OMP_DATA_DIR}"
   local latest_version
   latest_version=$(_get_latest_omp_version_silent)
   if [ -z "$latest_version" ]; then
     log_error "Failed to fetch latest Oh-My-Pi version"
     return 1
   fi
-  mkdir -p "$OMP_DATA_DIR"
+  mkdir -p "$target_dir"
   local download_url="https://github.com/can1357/oh-my-pi/releases/download/$latest_version/omp-linux-arm64"
-  if ! curl -fsSL "$download_url" -o "$OMP_DATA_DIR/omp" &>>"$LOG_FILE"; then
+  if ! curl -fsSL "$download_url" -o "$target_dir/omp" &>>"$LOG_FILE"; then
     log_error "Failed to download Oh-My-Pi binary"
     return 1
   fi
-  chmod +x "$OMP_DATA_DIR/omp"
-  echo "$latest_version" > "$OMP_DATA_DIR/version"
+  chmod +x "$target_dir/omp"
+  echo "$latest_version" > "$target_dir/version"
   return 0
 }
 
@@ -94,23 +95,45 @@ _compile_omp_helper() {
 }
 
 _compile_omp_helper_impl() {
+  local output="${1:-$PREFIX/bin/omp}"
   local HELPER_SRC="$KARNEL_PATH/tools/ai/oh-my-pi/helper/omp_helper.c"
   if [ ! -f "$HELPER_SRC" ]; then
     log_error "Helper source not found at $HELPER_SRC"
     return 1
   fi
-  if ! clang -O2 -o "$PREFIX/bin/omp" "$HELPER_SRC" &>>"$LOG_FILE"; then
+  if ! clang -O2 -o "$output" "$HELPER_SRC" &>>"$LOG_FILE"; then
     log_error "Failed to compile omp helper"
     return 1
   fi
-  chmod +x "$PREFIX/bin/omp"
+  chmod +x "$output"
   return 0
 }
 
 _install_omp_native() {
+  local staging_dir old_data old_bin
   _omp_install_deps_native || return 1
-  _download_omp_binary || return 1
-  _compile_omp_helper || return 1
+  mkdir -p "$(dirname "$OMP_DATA_DIR")" "$PREFIX/bin"
+  staging_dir=$(mktemp -d "$(dirname "$OMP_DATA_DIR")/.oh-my-pi.XXXXXX") || return 1
+  if ! _download_omp_binary_impl "$staging_dir/data" ||
+    ! _compile_omp_helper_impl "$staging_dir/omp" ||
+    [[ ! -x "$staging_dir/data/omp" || ! -x "$staging_dir/omp" ]]; then
+    rm -rf "$staging_dir"
+    return 1
+  fi
+
+  old_data="${OMP_DATA_DIR}.previous.$$"
+  old_bin="$PREFIX/bin/omp.previous.$$"
+  if { [ -d "$OMP_DATA_DIR" ] && ! mv "$OMP_DATA_DIR" "$old_data"; } ||
+    { [ -e "$PREFIX/bin/omp" ] && ! mv "$PREFIX/bin/omp" "$old_bin"; } ||
+    ! mv "$staging_dir/data" "$OMP_DATA_DIR" ||
+    ! mv "$staging_dir/omp" "$PREFIX/bin/omp"; then
+    rm -rf "$staging_dir" "$OMP_DATA_DIR"
+    [[ -e "$old_bin" ]] && mv "$old_bin" "$PREFIX/bin/omp"
+    [[ -d "$old_data" ]] && mv "$old_data" "$OMP_DATA_DIR"
+    log_error "Failed to replace Oh-My-Pi"
+    return 1
+  fi
+  rm -rf "$staging_dir" "$old_data" "$old_bin"
   log_success "Oh-My-Pi (omp) installed natively"
   return 0
 }
@@ -137,14 +160,18 @@ _install_omp_proot_impl() {
     return 1
   fi
   local download_url="https://github.com/can1357/oh-my-pi/releases/download/$latest_version/omp-linux-arm64"
-  _omp_proot_ubuntu /bin/bash -c "
+  if ! _omp_proot_ubuntu /bin/bash -c "
     mkdir -p /tmp/omp-install &&
     curl -fsSL '$download_url' -o /tmp/omp-install/omp &&
+    chmod +x /tmp/omp-install/omp &&
+    test -x /tmp/omp-install/omp &&
     mkdir -p /usr/local/bin &&
     mv /tmp/omp-install/omp /usr/local/bin/omp &&
-    chmod +x /usr/local/bin/omp &&
     rm -rf /tmp/omp-install
-  " &>>"$LOG_FILE"
+  " &>>"$LOG_FILE"; then
+    log_error "Failed to install Oh-My-Pi binary"
+    return 1
+  fi
   local ubuntu_root
   ubuntu_root="$(_omp_detect_ubuntu_root)"
   if [ -z "$ubuntu_root" ]; then
@@ -218,8 +245,6 @@ _uninstall_omp_proot_impl() {
 }
 
 _update_omp_native_impl() {
-  rm -f "$PREFIX/bin/omp"
-  rm -rf "$OMP_DATA_DIR"
   _install_omp_native
 }
 
@@ -231,14 +256,17 @@ _update_omp_proot_impl() {
     return 1
   fi
   local download_url="https://github.com/can1357/oh-my-pi/releases/download/$latest_version/omp-linux-arm64"
-  _omp_proot_ubuntu /bin/bash -c "
-    rm -f /usr/local/bin/omp &&
+  if ! _omp_proot_ubuntu /bin/bash -c "
     mkdir -p /tmp/omp-update &&
     curl -fsSL '$download_url' -o /tmp/omp-update/omp &&
+    chmod +x /tmp/omp-update/omp &&
+    test -x /tmp/omp-update/omp &&
     mv /tmp/omp-update/omp /usr/local/bin/omp &&
-    chmod +x /usr/local/bin/omp &&
     rm -rf /tmp/omp-update
-  " &>>"$LOG_FILE"
+  " &>>"$LOG_FILE"; then
+    log_error "Failed to update Oh-My-Pi binary"
+    return 1
+  fi
   local ubuntu_root
   ubuntu_root="$(_omp_detect_ubuntu_root)"
   if [ ! -f "$ubuntu_root/usr/local/bin/omp" ]; then

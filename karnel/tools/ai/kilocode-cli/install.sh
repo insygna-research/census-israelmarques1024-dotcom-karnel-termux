@@ -5,7 +5,36 @@ import "@/utils/version"
 import "@/utils/colors"
 
 LOG_FILE="$KARNEL_CACHE/install_ai.log"
-KILOCODE_DATA_DIR="$HOME/.local/share/karnel-data/kilocode"
+KILOCODE_DATA_DIR="${KARNEL_DATA:-${XDG_DATA_HOME:-$HOME/.local/share}/karnel-data}/kilocode"
+
+_kilocode_wrapper_owned() {
+  local marker="$KILOCODE_DATA_DIR/.karnel-wrapper-kilocode"
+  [[ -f "$marker" && -f "$PREFIX/bin/kilocode" ]] || return 1
+  [[ "$(sha256sum "$PREFIX/bin/kilocode" 2>/dev/null)" == "$(<"$marker")" ]]
+}
+
+_kilocode_alias_owned() {
+  [[ -L "$PREFIX/bin/kilo" && "$(readlink "$PREFIX/bin/kilo")" == "$PREFIX/bin/kilocode" ]]
+}
+
+_kilocode_data_owned() {
+  [[ -f "$KILOCODE_DATA_DIR/.karnel-managed" ]]
+}
+
+_kilocode_verify_ownership() {
+  if [[ -e "$KILOCODE_DATA_DIR" ]] && ! _kilocode_data_owned; then
+    log_error "Refusing to replace unowned Kilo Code data: $KILOCODE_DATA_DIR"
+    return 1
+  fi
+  if [[ -e "$PREFIX/bin/kilocode" ]] && ! _kilocode_wrapper_owned; then
+    log_error "Refusing to replace unowned command: $PREFIX/bin/kilocode"
+    return 1
+  fi
+  if [[ -e "$PREFIX/bin/kilo" || -L "$PREFIX/bin/kilo" ]] && ! _kilocode_alias_owned; then
+    log_error "Refusing to replace unowned command: $PREFIX/bin/kilo"
+    return 1
+  fi
+}
 
 _get_latest_kilocode_version() {
   curl -fsSL https://api.github.com/repos/Kilo-Org/kilocode/releases/latest |
@@ -68,29 +97,48 @@ _download_kilocode_binary_impl() {
     return 1
   fi
 
-  mkdir -p "$KILOCODE_DATA_DIR"
+  mkdir -p "$(dirname "$KILOCODE_DATA_DIR")" || return 1
+
+  local staging_dir
+  staging_dir="$(mktemp -d "$(dirname "$KILOCODE_DATA_DIR")/.kilocode.XXXXXX")" || return 1
 
   local tarball="kilo-linux-arm64.tar.gz"
   local download_url="https://github.com/Kilo-Org/kilocode/releases/download/$latest_version/$tarball"
 
-  if ! curl -fsSL "$download_url" -o "$KILOCODE_DATA_DIR/$tarball" &>>"$LOG_FILE"; then
+  if ! curl -fsSL "$download_url" -o "$staging_dir/$tarball" &>>"$LOG_FILE"; then
+    rm -rf "$staging_dir"
     log_error "Failed to download Kilo Code CLI binary"
     return 1
   fi
 
-  if ! tar -zxf "$KILOCODE_DATA_DIR/$tarball" -C "$KILOCODE_DATA_DIR" &>>"$LOG_FILE"; then
+  if ! tar -zxf "$staging_dir/$tarball" -C "$staging_dir" &>>"$LOG_FILE"; then
+    rm -rf "$staging_dir"
     log_error "Failed to extract Kilo Code CLI binary"
     return 1
   fi
 
-  rm -f "$KILOCODE_DATA_DIR/$tarball"
+  rm -f "$staging_dir/$tarball"
 
-  if [ ! -f "$KILOCODE_DATA_DIR/kilo" ]; then
+  if [ ! -f "$staging_dir/kilo" ]; then
+    rm -rf "$staging_dir"
     log_error "Kilo Code CLI binary not found after extraction"
     return 1
   fi
 
-  chmod +x "$KILOCODE_DATA_DIR/kilo"
+  chmod +x "$staging_dir/kilo"
+
+  local old_dir="${KILOCODE_DATA_DIR}.previous.$$"
+  if [[ -e "$KILOCODE_DATA_DIR" ]] && ! mv "$KILOCODE_DATA_DIR" "$old_dir"; then
+    rm -rf "$staging_dir"
+    return 1
+  fi
+  if ! mv "$staging_dir" "$KILOCODE_DATA_DIR"; then
+    [[ -e "$old_dir" ]] && mv "$old_dir" "$KILOCODE_DATA_DIR"
+    rm -rf "$staging_dir"
+    return 1
+  fi
+  rm -rf "$old_dir"
+  : >"$KILOCODE_DATA_DIR/.karnel-managed"
   return 0
 }
 
@@ -105,14 +153,20 @@ _compile_kilocode_helper_impl() {
     return 1
   fi
 
-  if ! cc -O2 -o "$PREFIX/bin/kilocode" "$HELPER_SRC" &>>"$LOG_FILE"; then
+  mkdir -p "$PREFIX/bin" || return 1
+  local temporary
+  temporary="$(mktemp "$PREFIX/bin/.kilocode.XXXXXX")" || return 1
+  if ! cc -O2 -o "$temporary" "$HELPER_SRC" &>>"$LOG_FILE"; then
+    rm -f "$temporary"
     log_error "Failed to compile kilocode helper"
     return 1
   fi
 
-  chmod +x "$PREFIX/bin/kilocode"
+  chmod +x "$temporary"
+  mv -f "$temporary" "$PREFIX/bin/kilocode" || return 1
 
   ln -sf "$PREFIX/bin/kilocode" "$PREFIX/bin/kilo"
+  sha256sum "$PREFIX/bin/kilocode" >"$KILOCODE_DATA_DIR/.karnel-wrapper-kilocode" || return 1
 
   return 0
 }
@@ -126,10 +180,12 @@ _install_kilocode_native() {
 }
 
 install_kilocode_cli() {
-  if command -v kilocode &>/dev/null; then
+  if _kilocode_wrapper_owned && _kilocode_data_owned; then
     log_info "Kilo Code CLI is already installed"
     return 2
   fi
+
+  _kilocode_verify_ownership || return 1
 
   _install_kilocode_native
 }
@@ -137,7 +193,7 @@ install_kilocode_cli() {
 uninstall_kilocode_cli() {
   mkdir -p "$(dirname "$LOG_FILE")"
 
-  if [ ! -f "$PREFIX/bin/kilocode" ]; then
+  if ! _kilocode_wrapper_owned && ! _kilocode_alias_owned && ! _kilocode_data_owned; then
     log_warn "Kilo Code CLI is not installed"
     return 1
   fi
@@ -146,20 +202,10 @@ uninstall_kilocode_cli() {
 }
 
 _uninstall_kilocode_cli_impl() {
-  if [ -f "$KILOCODE_DATA_DIR/kilo" ]; then
-    rm -f "$PREFIX/bin/kilocode" "$PREFIX/bin/kilo"
-    rm -rf "$KILOCODE_DATA_DIR"
-    log_success "Kilo Code CLI uninstalled"
-    return 0
-  fi
-
-  if rm -f "$PREFIX/bin/kilocode" "$PREFIX/bin/kilo" &>>"$LOG_FILE"; then
-    log_success "Kilo Code CLI uninstalled"
-    return 0
-  else
-    log_error "Failed to uninstall Kilo Code CLI"
-    return 1
-  fi
+  _kilocode_alias_owned && rm -f "$PREFIX/bin/kilo"
+  _kilocode_wrapper_owned && rm -f "$PREFIX/bin/kilocode"
+  _kilocode_data_owned && rm -rf "$KILOCODE_DATA_DIR"
+  log_success "Kilo Code CLI uninstalled"
 }
 
 update_kilocode_cli() {

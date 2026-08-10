@@ -42,10 +42,6 @@ _install_lang_wrapper() {
 }
 
 uninstall_lang() {
-	if ! command -v node &>/dev/null; then
-		log_info "Language Packages are not installed"
-		return 0
-	fi
 	separator
 	box "Uninstalling Language Packages"
 	separator

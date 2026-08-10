@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 
 import "@/utils/log"
+import "@/utils/uninstall"
 
 LOG_FILE="$KARNEL_CACHE/install_ui.log"
 
 KARNEL_BANNER_MARKER="# ===== Karnel Banner ====="
+KARNEL_BANNER_END_MARKER="# ===== /Karnel Banner ====="
 KARNEL_MOTD_BACKUP="$KARNEL_CACHE/motd.backup"
 
 _backup_motd() {
@@ -77,12 +79,16 @@ if [[ -n "\$ZSH_VERSION" ]]; then
     [[ -f "\$_karnel_banner_cache" ]] && cat "\$_karnel_banner_cache"
   }
   precmd_functions+=(_karnel_show_banner)
+elif [[ \$- == *i* && -z "\${KARNEL_BANNER_SESSION_SHOWN:-}" ]]; then
+  export KARNEL_BANNER_SESSION_SHOWN=1
+  render_banner
 fi
 
 clear() {
-	builtin clear 2>/dev/null || /usr/bin/clear 2>/dev/null || true
+	command clear 2>/dev/null || true
 	[[ -f "\$_karnel_banner_cache" ]] && cat "\$_karnel_banner_cache"
 }
+$KARNEL_BANNER_END_MARKER
 EOF
 
 	log_success "Karnel Banner installed"
@@ -117,21 +123,23 @@ _uninstall_banner_impl() {
 		return 0
 	fi
 
-	local marker_line
-	marker_line="$(grep -nF "$KARNEL_BANNER_MARKER" "$shell_config" | head -1 | cut -d: -f1)"
-
-	if [[ -n "$marker_line" ]]; then
-		local prev_line=$((marker_line - 1))
-		if sed -n "${prev_line}p" "$shell_config" 2>/dev/null | grep -q '^$'; then
-			sed -i "$((prev_line)),$((marker_line + 1))d" "$shell_config"
-		else
-			sed -i "$marker_line,$((marker_line + 1))d" "$shell_config"
-		fi
-		log_success "Karnel Banner uninstalled"
-	else
-		log_warn "Could not locate banner marker for removal"
-		return 1
-	fi
+  if grep -qF "$KARNEL_BANNER_END_MARKER" "$shell_config" 2>/dev/null; then
+    if ! remove_marked_block "$shell_config" "$KARNEL_BANNER_MARKER" "$KARNEL_BANNER_END_MARKER"; then
+      log_warn "Keeping malformed Karnel banner configuration"
+      return 0
+    fi
+    log_success "Karnel Banner uninstalled"
+  else
+    local marker_line
+    marker_line="$(grep -nF "$KARNEL_BANNER_MARKER" "$shell_config" | head -1 | cut -d: -f1)"
+    if [[ -n "$marker_line" ]]; then
+      sed -i "$marker_line,$((marker_line + 1))d" "$shell_config"
+      log_warn "Removed legacy banner block; restart the shell to clear remaining legacy functions"
+    else
+      log_warn "Could not locate banner marker for removal"
+      return 1
+    fi
+  fi
 
 	_restore_motd
 

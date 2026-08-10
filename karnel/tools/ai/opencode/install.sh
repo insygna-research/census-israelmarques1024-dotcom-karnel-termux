@@ -82,14 +82,14 @@ _install_opencode_proot_impl() {
   proot_install_ubuntu ubuntu:24.04
 
   proot_ubuntu /bin/bash -c \
-    'apt-get update && apt-get upgrade -y && apt-get install -y curl ca-certificates' \
+    'apt-get update && apt-get upgrade -y && apt-get install -y ca-certificates nodejs npm' \
     &>>"$LOG_FILE"
 
   proot_ubuntu /bin/bash -c '
     export SHELL=/bin/bash
     export TMPDIR=/tmp
     export HOME=/root
-    curl -fsSL https://opencode.ai/install | bash -s -- --no-modify-path
+    npm install -g opencode-ai@1.18.15
   ' &>>"$LOG_FILE"
 
   local ubuntu_root
@@ -180,7 +180,7 @@ _do_update_opencode() {
     export SHELL=/bin/bash
     export TMPDIR=/tmp
     export HOME=/root
-    curl -fsSL https://opencode.ai/install | bash -s -- --no-modify-path
+    npm install -g opencode-ai@1.18.15
   ' &>>"$LOG_FILE"
 
   local ubuntu_root

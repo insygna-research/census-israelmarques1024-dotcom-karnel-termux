@@ -15,6 +15,7 @@ install_sqlmap() {
   if git clone --depth 1 https://github.com/sqlmapproject/sqlmap "$_SQLMAP_DIR" 2>/dev/null; then
     ln -sf "$_SQLMAP_DIR/sqlmap.py" "$PREFIX/bin/sqlmap"
     chmod +x "$PREFIX/bin/sqlmap"
+    : > "$_SQLMAP_DIR/.karnel-wrapper"
     log_success "sqlmap instalado"
     return 0
   fi
@@ -24,8 +25,10 @@ install_sqlmap() {
 
 uninstall_sqlmap() {
   log_info "Removendo sqlmap..."
-  rm -f "$PREFIX/bin/sqlmap"
-  rm -rf "$_SQLMAP_DIR"
+  if [ -f "$_SQLMAP_DIR/.karnel-wrapper" ]; then
+    [ "$(readlink "$PREFIX/bin/sqlmap")" = "$_SQLMAP_DIR/sqlmap.py" ] && rm -f "$PREFIX/bin/sqlmap"
+    rm -rf "$_SQLMAP_DIR"
+  fi
   log_success "sqlmap removido"
 }
 

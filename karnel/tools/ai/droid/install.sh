@@ -37,32 +37,17 @@ _droid_install_inside_ubuntu() {
 }
 
 _droid_install_inside_ubuntu_impl() {
-  proot-distro login --shared-tmp ubuntu -- bash -c '
+  if ! proot-distro login --shared-tmp ubuntu -- bash -c '
     export DEBIAN_FRONTEND=noninteractive
-    apt-get update -qq 2>/dev/null || true
-    apt-get install -y -qq curl ca-certificates 2>/dev/null || true
+    apt-get update -qq
+    apt-get install -y -qq ca-certificates nodejs npm
 
-    # Tentar npm primeiro (funciona se o Node foi instalado)
-    if command -v npm &>/dev/null; then
-      npm install -g @factory/cli 2>/dev/null && {
-        if command -v droid &>/dev/null; then
-          echo "NPM_OK"
-          exit 0
-        fi
-      }
-    fi
-
-    # Fallback: install script oficial
-    curl -fsSL https://app.factory.ai/cli | sh 2>/dev/null || true
-
-    if command -v droid &>/dev/null; then
-      echo "SCRIPT_OK"
-      exit 0
-    fi
-
-    echo "FAILED"
-    exit 1
-  ' 2>&1 | tail -5 >>"$LOG_FILE" || true
+    npm install -g @factory/cli@0.190.0
+    command -v droid
+  ' >>"$LOG_FILE" 2>&1; then
+    log_error "Failed to install Droid CLI in Ubuntu container"
+    return 1
+  fi
 }
 
 _droid_create_termux_wrapper() {
@@ -95,27 +80,6 @@ _droid_create_termux_wrapper_impl() {
     fi
   fi
 
-  if [ -z "$droid_bin_in_ubuntu" ]; then
-    # Se nao achou via npm, tenta o script de instalacao
-    if [ -f "$ubuntu_root/usr/local/bin/droid" ]; then
-      droid_bin_in_ubuntu="/usr/local/bin/droid"
-    elif [ -f "$ubuntu_root/root/.local/bin/droid" ]; then
-      droid_bin_in_ubuntu="/root/.local/bin/droid"
-    fi
-  fi
-
-  if [ -z "$droid_bin_in_ubuntu" ]; then
-    log_warn "Droid binary not found in Ubuntu, trying manual download..."
-    proot-distro login --shared-tmp ubuntu -- bash -c '
-      curl -fsSL https://app.factory.ai/cli | sh 2>/dev/null || true
-    ' || true
-
-    if [ -f "$ubuntu_root/usr/local/bin/droid" ]; then
-      droid_bin_in_ubuntu="/usr/local/bin/droid"
-    elif [ -f "$ubuntu_root/root/.local/bin/droid" ]; then
-      droid_bin_in_ubuntu="/root/.local/bin/droid"
-    fi
-  fi
 
   if [ -z "$droid_bin_in_ubuntu" ]; then
     log_error "Could not find Droid CLI binary in Ubuntu container"

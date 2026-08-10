@@ -8,6 +8,47 @@ LOG_FILE="$KARNEL_CACHE/install_lang.log"
 BUN_DATA_DIR="$KARNEL_DATA/bun"
 BUN_REPO="oven-sh/bun"
 
+_bun_wrapper_owned() {
+  local name="$1"
+  local marker="$BUN_DATA_DIR/.karnel-wrapper-$name"
+  [[ -f "$marker" && -f "$PREFIX/bin/$name" ]] || return 1
+  [[ "$(sha256sum "$PREFIX/bin/$name" 2>/dev/null)" == "$(<"$marker")" ]]
+}
+
+_bun_shim_owned() {
+  local marker="$BUN_DATA_DIR/.karnel-shim"
+  [[ -f "$marker" && -f "$PREFIX/lib/bun-shim.so" ]] || return 1
+  [[ "$(sha256sum "$PREFIX/lib/bun-shim.so" 2>/dev/null)" == "$(<"$marker")" ]]
+}
+
+_bun_bunx_owned() {
+  [[ -f "$BUN_DATA_DIR/.karnel-wrapper-bunx" && -L "$PREFIX/bin/bunx" ]] || return 1
+  [[ "$(readlink "$PREFIX/bin/bunx")" == "$(<"$BUN_DATA_DIR/.karnel-wrapper-bunx")" ]]
+}
+
+_bun_verify_native_ownership() {
+  local path name
+  if [[ -e "$BUN_DATA_DIR" && ! -f "$BUN_DATA_DIR/.karnel-managed" ]]; then
+    log_error "Refusing to replace unowned data directory: $BUN_DATA_DIR"
+    return 1
+  fi
+  for name in bun; do
+    path="$PREFIX/bin/$name"
+    if [[ -e "$path" ]] && ! _bun_wrapper_owned "$name"; then
+      log_error "Refusing to replace unowned command: $path"
+      return 1
+    fi
+  done
+  if [[ -e "$PREFIX/bin/bunx" ]] && ! _bun_bunx_owned; then
+    log_error "Refusing to replace unowned command: $PREFIX/bin/bunx"
+    return 1
+  fi
+  if [[ -e "$PREFIX/lib/bun-shim.so" ]] && ! _bun_shim_owned; then
+    log_error "Refusing to replace unowned library: $PREFIX/lib/bun-shim.so"
+    return 1
+  fi
+}
+
 _bun_detect_ubuntu_root() {
   local root
   root="$(find /data/data/com.termux -maxdepth 10 -type d \
@@ -78,7 +119,7 @@ _download_bun_binary_native() {
 }
 
 _download_bun_binary_native_impl() {
-  local version
+  local version staging_dir old_dir zip_name extracted
   version="$(_bun_fetch_version)"
   if [ -z "$version" ]; then
     log_error "Failed to fetch latest Bun version"
@@ -90,30 +131,48 @@ _download_bun_binary_native_impl() {
     log_error "Bun native build only supports aarch64 (got: $arch)"
     return 1
   fi
-  mkdir -p "$BUN_DATA_DIR"
-  local zip_name="bun-linux-aarch64.zip"
+  mkdir -p "$(dirname "$BUN_DATA_DIR")"
+  staging_dir="$(mktemp -d "$(dirname "$BUN_DATA_DIR")/.bun.XXXXXX")" || return 1
+  zip_name="bun-linux-aarch64.zip"
   curl -fsSL "https://github.com/$BUN_REPO/releases/download/bun-v$version/$zip_name" \
-    -o "$BUN_DATA_DIR/$zip_name" &>>"$LOG_FILE" || {
+    -o "$staging_dir/$zip_name" &>>"$LOG_FILE" || {
+    rm -rf "$staging_dir"
     log_error "Failed to download Bun binary"
     return 1
   }
-  if ! unzip -o "$BUN_DATA_DIR/$zip_name" -d "$BUN_DATA_DIR" &>>"$LOG_FILE"; then
+  if ! unzip -o "$staging_dir/$zip_name" -d "$staging_dir" &>>"$LOG_FILE"; then
+    rm -rf "$staging_dir"
     log_error "Failed to extract Bun binary"
     return 1
   fi
-  rm -f "$BUN_DATA_DIR/$zip_name"
-  local extracted="$BUN_DATA_DIR/bun-linux-aarch64/bun"
+  rm -f "$staging_dir/$zip_name"
+  extracted="$staging_dir/bun-linux-aarch64/bun"
   if [ ! -f "$extracted" ]; then
+    rm -rf "$staging_dir"
     log_error "Bun binary not found after extraction"
     return 1
   fi
-  mv -f "$extracted" "$BUN_DATA_DIR/bun.real"
-  rm -rf "$BUN_DATA_DIR/bun-linux-aarch64"
-  if [ ! -f "$BUN_DATA_DIR/bun.real" ]; then
+  if ! mv "$extracted" "$staging_dir/bun.real" || ! rm -rf "$staging_dir/bun-linux-aarch64"; then
+    rm -rf "$staging_dir"
+    return 1
+  fi
+  if [ ! -f "$staging_dir/bun.real" ]; then
+    rm -rf "$staging_dir"
     log_error "Bun binary not found after extraction"
     return 1
   fi
-  chmod +x "$BUN_DATA_DIR/bun.real"
+  chmod +x "$staging_dir/bun.real"
+  : >"$staging_dir/.karnel-managed"
+  old_dir="${BUN_DATA_DIR}.previous.$$"
+  if [[ -e "$BUN_DATA_DIR" ]] && ! mv "$BUN_DATA_DIR" "$old_dir"; then
+    rm -rf "$staging_dir"
+    return 1
+  fi
+  if ! mv "$staging_dir" "$BUN_DATA_DIR"; then
+    [[ -e "$old_dir" ]] && mv "$old_dir" "$BUN_DATA_DIR"
+    return 1
+  fi
+  rm -rf "$old_dir"
   return 0
 }
 
@@ -142,29 +201,47 @@ _compile_bun_helper_impl() {
 		log_error "Wrapper source not found at $wrapper_src"
 		return 1
 	fi
-	mkdir -p "$PREFIX/lib"
-	if ! $CC -O2 -fPIC -shared -nostdlib -o "$PREFIX/lib/bun-shim.so" "$shim_src" &>>"$LOG_FILE"; then
-		log_error "Failed to compile bun shim"
-		return 1
-	fi
-	chmod +x "$PREFIX/lib/bun-shim.so"
-	local wrapper_tmp="${TMPDIR:-/tmp}/bun_wrapper_$$.c"
-	sed "s|__BUN_REAL__|$BUN_DATA_DIR/bun.real|g" "$wrapper_src" >"$wrapper_tmp"
-	if ! $CC -O2 -o "$PREFIX/bin/bun" "$wrapper_tmp" &>>"$LOG_FILE"; then
-		rm -f "$wrapper_tmp"
-		log_error "Failed to compile bun wrapper"
-		return 1
-	fi
-	chmod +x "$PREFIX/bin/bun"
-	rm -f "$wrapper_tmp"
-	return 0
+  mkdir -p "$PREFIX/lib" "$PREFIX/bin"
+  local shim_tmp wrapper_tmp wrapper_bin_tmp
+  shim_tmp="$(mktemp "$PREFIX/lib/.bun-shim.XXXXXX")" || return 1
+  if ! $CC -O2 -fPIC -shared -nostdlib -o "$shim_tmp" "$shim_src" &>>"$LOG_FILE"; then
+    rm -f "$shim_tmp"
+    log_error "Failed to compile bun shim"
+    return 1
+  fi
+  if ! mv -f "$shim_tmp" "$PREFIX/lib/bun-shim.so"; then
+    rm -f "$shim_tmp"
+    return 1
+  fi
+  chmod +x "$PREFIX/lib/bun-shim.so"
+  wrapper_tmp="$(mktemp "${TMPDIR:-/tmp}/bun_wrapper.XXXXXX.c")" || return 1
+  wrapper_bin_tmp="$(mktemp "$PREFIX/bin/.bun.XXXXXX")" || { rm -f "$wrapper_tmp"; return 1; }
+  sed "s|__BUN_REAL__|$BUN_DATA_DIR/bun.real|g" "$wrapper_src" >"$wrapper_tmp"
+  if ! $CC -O2 -o "$wrapper_bin_tmp" "$wrapper_tmp" &>>"$LOG_FILE"; then
+    rm -f "$wrapper_tmp" "$wrapper_bin_tmp"
+    log_error "Failed to compile bun wrapper"
+    return 1
+  fi
+  if ! mv -f "$wrapper_bin_tmp" "$PREFIX/bin/bun"; then
+    rm -f "$wrapper_tmp" "$wrapper_bin_tmp"
+    return 1
+  fi
+  chmod +x "$PREFIX/bin/bun"
+  rm -f "$wrapper_tmp"
+  sha256sum "$PREFIX/bin/bun" >"$BUN_DATA_DIR/.karnel-wrapper-bun" || return 1
+  sha256sum "$PREFIX/lib/bun-shim.so" >"$BUN_DATA_DIR/.karnel-shim" || return 1
+  return 0
 }
 
 _install_bun_native() {
+  _bun_verify_native_ownership || return 1
   _bun_install_deps_native || return 1
   _download_bun_binary_native || return 1
   _compile_bun_helper || return 1
-  ln -sf bun "$PREFIX/bin/bunx"
+  local bunx_tmp
+  bunx_tmp="$PREFIX/bin/.bunx.$$"
+  ln -s bun "$bunx_tmp" && mv -f "$bunx_tmp" "$PREFIX/bin/bunx" || { rm -f "$bunx_tmp"; return 1; }
+  printf 'bun\n' >"$BUN_DATA_DIR/.karnel-wrapper-bunx"
   log_success "Bun installed natively (glibc build)"
   return 0
 }
@@ -242,8 +319,10 @@ install_bun() {
 }
 
 _uninstall_bun_native() {
-  rm -f "$PREFIX/bin/bun" "$PREFIX/bin/bunx" "$PREFIX/lib/bun-shim.so"
-  rm -rf "$BUN_DATA_DIR"
+  _bun_wrapper_owned bun && rm -f "$PREFIX/bin/bun"
+  _bun_bunx_owned && rm -f "$PREFIX/bin/bunx"
+  _bun_shim_owned && rm -f "$PREFIX/lib/bun-shim.so"
+  [[ -f "$BUN_DATA_DIR/.karnel-managed" ]] && rm -rf "$BUN_DATA_DIR"
   log_success "Bun (native) uninstalled"
   return 0
 }
@@ -256,7 +335,7 @@ _uninstall_bun_proot() {
 }
 
 _uninstall_bun_impl() {
-  if [ -f "$BUN_DATA_DIR/bun.real" ]; then
+  if [ -f "$BUN_DATA_DIR/bun.real" ] && [ -f "$BUN_DATA_DIR/.karnel-managed" ]; then
     _uninstall_bun_native
     return $?
   fi
@@ -273,6 +352,7 @@ uninstall_bun() {
 }
 
 _update_bun_native() {
+  _bun_verify_native_ownership || return 1
   _download_bun_binary_native || return 1
   _compile_bun_helper || return 1
   log_success "Bun (native) updated"

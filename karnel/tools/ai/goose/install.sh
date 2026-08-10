@@ -24,7 +24,7 @@ _goose_download_binary() {
 }
 
 _goose_download_binary_impl() {
-  if [ -x "$GOOSE_BIN_PATH" ]; then
+  if [ -x "$GOOSE_BIN_PATH" ] && [ "${1:-}" != "force" ]; then
     return 0
   fi
 
@@ -47,35 +47,53 @@ _goose_download_binary_impl() {
   local tarball="goose-${arch_suffix}.tar.gz"
   local download_url="https://github.com/aaif-goose/goose/releases/download/v${latest_version}/${tarball}"
 
-  mkdir -p "$GOOSE_DATA_DIR"
+  local staging_dir old_data old_bin goose_bin
+  mkdir -p "$(dirname "$GOOSE_DATA_DIR")" "$(dirname "$GOOSE_BIN_PATH")"
+  staging_dir=$(mktemp -d "$(dirname "$GOOSE_DATA_DIR")/.goose.XXXXXX") || return 1
 
-  if ! curl -fsSL "$download_url" -o "$GOOSE_DATA_DIR/$tarball" &>>"$LOG_FILE"; then
+  if ! curl -fsSL "$download_url" -o "$staging_dir/$tarball" &>>"$LOG_FILE"; then
+    rm -rf "$staging_dir"
     log_error "Failed to download Goose CLI"
     return 1
   fi
 
-  if ! tar -xzf "$GOOSE_DATA_DIR/$tarball" -C "$GOOSE_DATA_DIR" &>>"$LOG_FILE"; then
+  if ! tar -xzf "$staging_dir/$tarball" -C "$staging_dir" &>>"$LOG_FILE"; then
     log_error "Failed to extract Goose CLI"
-    rm -f "$GOOSE_DATA_DIR/$tarball"
+    rm -rf "$staging_dir"
     return 1
   fi
 
-  rm -f "$GOOSE_DATA_DIR/$tarball"
+  rm -f "$staging_dir/$tarball"
 
-  local goose_bin
-  goose_bin=$(find "$GOOSE_DATA_DIR" -name "goose" -type f 2>/dev/null | head -1)
+  goose_bin=$(find "$staging_dir" -name "goose" -type f 2>/dev/null | head -1)
   if [ -z "$goose_bin" ]; then
+    rm -rf "$staging_dir"
     log_error "Goose binary not found after extraction"
     return 1
   fi
 
-  cp "$goose_bin" "$GOOSE_BIN_PATH"
-  chmod +x "$GOOSE_BIN_PATH"
+  cp "$goose_bin" "$staging_dir/.goose-bin" || { rm -rf "$staging_dir"; return 1; }
+  chmod +x "$staging_dir/.goose-bin"
 
-  if [ ! -x "$GOOSE_BIN_PATH" ]; then
+  if [ ! -x "$staging_dir/.goose-bin" ]; then
+    rm -rf "$staging_dir"
     log_error "Goose CLI is not executable"
     return 1
   fi
+
+  old_data="${GOOSE_DATA_DIR}.previous.$$"
+  old_bin="${GOOSE_BIN_PATH}.previous.$$"
+  if { [ -d "$GOOSE_DATA_DIR" ] && ! mv "$GOOSE_DATA_DIR" "$old_data"; } ||
+    { [ -e "$GOOSE_BIN_PATH" ] && ! mv "$GOOSE_BIN_PATH" "$old_bin"; } ||
+    ! mv "$staging_dir" "$GOOSE_DATA_DIR" ||
+    ! mv "$GOOSE_DATA_DIR/.goose-bin" "$GOOSE_BIN_PATH"; then
+    rm -rf "$staging_dir" "$GOOSE_DATA_DIR"
+    [[ -e "$old_bin" ]] && mv "$old_bin" "$GOOSE_BIN_PATH"
+    [[ -d "$old_data" ]] && mv "$old_data" "$GOOSE_DATA_DIR"
+    log_error "Failed to replace Goose CLI"
+    return 1
+  fi
+  rm -rf "$old_data" "$old_bin"
 
   return 0
 }
@@ -120,9 +138,7 @@ update_goose() {
 }
 
 _update_goose_impl() {
-  rm -f "$PREFIX/bin/goose"
-  rm -rf "$GOOSE_DATA_DIR"
-  install_goose
+  _goose_download_binary_impl force
 }
 
 reinstall_goose() {

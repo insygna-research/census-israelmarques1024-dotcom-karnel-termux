@@ -31,7 +31,7 @@ omni-route --help                   # Show all commands
 omni-route --version                # Show version
 ```
 
-> Note: `karnel-route` and `karnelroute` also work as aliases.
+> Note: `karnelroute` also works as an alias.
 
 ## Dashboard
 
@@ -42,11 +42,10 @@ Access the web dashboard at:
 
 ## Architecture
 
-The wrapper uses a **3-tier fallback** strategy:
+The wrapper uses a **2-tier installation** strategy:
 
 1. **Local install** (`~/.karnel/packages/karnelroute/`) — Fast, no download on subsequent runs
 2. **npm install** (first run) — Downloads and caches locally with `--ignore-scripts`
-3. **npx** (last resort) — Falls back to on-demand execution
 
 ### Termux / Android Native Fixes (root cause of "Internal Server Error" 500)
 
@@ -80,14 +79,14 @@ server recreate a fresh database:
 
 ```bash
 rm -f ~/.karnelroute/storage.sqlite{,-wal,-shm} ~/.karnelroute/storage.sqlite.probe-failed-*
-karnel-route serve --daemon
+omni-route serve --daemon
 ```
 
 ## Commands
 
 | Command | Description |
 |---------|-------------|
-| `omni-route` | AI Gateway (alias: karnel-route) |
+| `omni-route` | AI Gateway (alias: karnelroute) |
 | `omni-route serve` | Start the server |
 | `omni-route serve --daemon` | Run in background |
 | `omni-route stop` | Stop the daemon |

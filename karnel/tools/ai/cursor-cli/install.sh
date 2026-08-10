@@ -6,6 +6,38 @@ import "@/utils/version"
 
 LOG_FILE="$KARNEL_CACHE/install_ai.log"
 CURSOR_DATA_DIR="$HOME/.local/share/karnel-data/cursor"
+_CURSOR_MARKER="$PREFIX/share/karnel-installers/cursor-cli"
+_CURSOR_DATA_MARKER="$CURSOR_DATA_DIR/.karnel-managed"
+_CURSOR_DATA_MANIFEST="$CURSOR_DATA_DIR/.karnel-manifest"
+_CURSOR_DATA_INVENTORY="$CURSOR_DATA_DIR/.karnel-inventory"
+
+_cursor_data_inventory() {
+  find "$CURSOR_DATA_DIR" -mindepth 1 \
+    ! -name '.karnel-managed' ! -name '.karnel-manifest' ! -name '.karnel-inventory' \
+    -printf '%y %P\n' | LC_ALL=C sort
+}
+
+_cursor_write_data_metadata() {
+  mkdir -p "$CURSOR_DATA_DIR" "$(dirname "$_CURSOR_MARKER")" || return 1
+  printf '%s\n' 'Karnel Cursor CLI data' >"$_CURSOR_DATA_MARKER" || return 1
+  _cursor_data_inventory >"$_CURSOR_DATA_INVENTORY" || return 1
+  find "$CURSOR_DATA_DIR" -type f \
+    ! -name '.karnel-managed' ! -name '.karnel-manifest' ! -name '.karnel-inventory' \
+    -exec sha256sum {} + | LC_ALL=C sort >"$_CURSOR_DATA_MANIFEST"
+}
+
+_cursor_data_is_karnel_owned() {
+  [ -f "$_CURSOR_DATA_MARKER" ] && [ -f "$_CURSOR_DATA_MANIFEST" ] && [ -f "$_CURSOR_DATA_INVENTORY" ] &&
+    [ "$(<"$_CURSOR_DATA_MARKER")" = 'Karnel Cursor CLI data' ] &&
+    cmp -s "$_CURSOR_DATA_INVENTORY" <(_cursor_data_inventory) &&
+    (cd / && sha256sum -c "$_CURSOR_DATA_MANIFEST" >/dev/null 2>&1)
+}
+
+_cursor_wrapper_is_karnel_owned() {
+  [ -f "$_CURSOR_MARKER" ] &&
+    [ "$(sha256sum "$PREFIX/bin/cursor" 2>/dev/null)" = "$(<"$_CURSOR_MARKER")" ] &&
+    grep -qF '# Karnel-managed Cursor CLI wrapper' "$PREFIX/bin/cursor"
+}
 
 _cursor_detect_ubuntu_root() {
   local root
@@ -91,12 +123,14 @@ _download_cursor_binary_impl() {
     return 1
   fi
   chmod +x "$CURSOR_DATA_DIR/cursor-agent" "$CURSOR_DATA_DIR/node" 2>/dev/null
+  _cursor_write_data_metadata || return 1
   return 0
 }
 
 _create_cursor_wrapper() {
   cat >"$PREFIX/bin/cursor" <<'WRAPPER'
 #!/data/data/com.termux/files/usr/bin/env bash
+# Karnel-managed Cursor CLI wrapper
 set -euo pipefail
 unset LD_PRELOAD LD_LIBRARY_PATH
 
@@ -127,12 +161,19 @@ exec /data/data/com.termux/files/usr/glibc/lib/ld-linux-aarch64.so.1 \
 WRAPPER
   chmod +x "$PREFIX/bin/cursor"
   ln -sf "$PREFIX/bin/cursor" "$PREFIX/bin/cursor-agent" 2>/dev/null || true
+  mkdir -p "$(dirname "$_CURSOR_MARKER")"
+  sha256sum "$PREFIX/bin/cursor" >"$_CURSOR_MARKER"
 }
 
 install_cursor_cli() {
   if command -v cursor &>/dev/null || command -v cursor-agent &>/dev/null; then
     log_info "Cursor CLI is already installed"
     return 2
+  fi
+
+  if [ -e "$CURSOR_DATA_DIR" ] && ! _cursor_data_is_karnel_owned; then
+    log_warn "Keeping existing Cursor CLI data not managed by Karnel"
+    return 1
   fi
 
   _cursor_install_deps_native || return 1
@@ -145,12 +186,16 @@ install_cursor_cli() {
 }
 
 uninstall_cursor_cli() {
-  if [ ! -f "$PREFIX/bin/cursor" ] && [ ! -f "$PREFIX/bin/cursor-agent" ]; then
+  if ! _cursor_wrapper_is_karnel_owned && ! _cursor_data_is_karnel_owned; then
     log_info "Cursor CLI is not installed"
     return 2
   fi
-  rm -f "$PREFIX/bin/cursor" "$PREFIX/bin/cursor-agent"
-  rm -rf "$CURSOR_DATA_DIR"
+  if _cursor_wrapper_is_karnel_owned; then
+    rm -f "$PREFIX/bin/cursor"
+    [ "$(readlink "$PREFIX/bin/cursor-agent" 2>/dev/null)" = "$PREFIX/bin/cursor" ] && rm -f "$PREFIX/bin/cursor-agent"
+    rm -f "$_CURSOR_MARKER"
+  fi
+  _cursor_data_is_karnel_owned && rm -rf "$CURSOR_DATA_DIR"
   log_success "Cursor CLI uninstalled"
 }
 
@@ -162,8 +207,7 @@ update_cursor_cli() {
 }
 
 _update_cursor_cli_impl() {
-  rm -f "$PREFIX/bin/cursor" "$PREFIX/bin/cursor-agent"
-  rm -rf "$CURSOR_DATA_DIR"
+  uninstall_cursor_cli || return $?
   install_cursor_cli
 }
 

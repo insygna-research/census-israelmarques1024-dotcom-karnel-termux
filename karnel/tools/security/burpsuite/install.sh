@@ -33,6 +33,7 @@ install_burpsuite() {
 exec java -jar "$PREFIX/share/burpsuite/burpsuite_community.jar" "$@"
 SCRIPT
     chmod +x "$PREFIX/bin/burpsuite"
+    sha256sum "$PREFIX/bin/burpsuite" > "$_BURP_DIR/.karnel-wrapper"
     log_success "burpsuite instalado"
     return 0
   fi
@@ -43,8 +44,10 @@ SCRIPT
 
 uninstall_burpsuite() {
   log_info "Removendo Burp Suite..."
-  rm -f "$PREFIX/bin/burpsuite"
-  rm -rf "$_BURP_DIR"
+  if [ -f "$_BURP_DIR/.karnel-wrapper" ]; then
+    [ "$(sha256sum "$PREFIX/bin/burpsuite" 2>/dev/null)" = "$(<"$_BURP_DIR/.karnel-wrapper")" ] && rm -f "$PREFIX/bin/burpsuite"
+    rm -rf "$_BURP_DIR"
+  fi
   log_success "burpsuite removido"
 }
 

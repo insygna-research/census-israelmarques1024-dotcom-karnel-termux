@@ -15,4 +15,5 @@ droid login            # Authenticate with Factory
 droid --version        # Show version
 ```
 
-On Termux, Droid is installed via npm for cross-platform compatibility.
+On Termux, Droid runs from an Ubuntu proot-distro container and installs the
+pinned `@factory/cli@0.190.0` npm package there.

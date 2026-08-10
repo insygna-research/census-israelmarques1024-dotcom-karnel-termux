@@ -4,6 +4,7 @@ import "@/utils/log"
 import "@/utils/version"
 
 PUTER_PACKAGE="@heyputer/cli"
+PUTER_LOG_FILE="$KARNEL_CACHE/install_ai.log"
 
 install_puter() {
   if command -v puter &>/dev/null; then
@@ -12,16 +13,12 @@ install_puter() {
   fi
 
   log_info "Installing Puter CLI..."
-  local output rc
-  output="$(npm install -g "$PUTER_PACKAGE" 2>&1)"
-  rc=$?
-  printf '%s\n' "$output" | tail -3
-  if ((rc != 0)); then
-    log_error "Failed to install Puter CLI"
+  if ! npm install -g "$PUTER_PACKAGE" &>>"$PUTER_LOG_FILE"; then
+    log_error "Failed to install Puter CLI; see $PUTER_LOG_FILE"
     return 1
   fi
-  if ! command -v puter &>/dev/null; then
-    log_error "Puter CLI binary was not found after npm installation"
+  if ! command -v puter &>/dev/null || ! puter --help &>/dev/null; then
+    log_error "Puter CLI did not run after installation; see $PUTER_LOG_FILE"
     return 1
   fi
   command -v termux-fix-shebang &>/dev/null && termux-fix-shebang "$(command -v puter)" &>/dev/null || true
@@ -35,12 +32,8 @@ uninstall_puter() {
   fi
 
   log_info "Uninstalling Puter CLI..."
-  local output rc
-  output="$(npm uninstall -g "$PUTER_PACKAGE" 2>&1)"
-  rc=$?
-  printf '%s\n' "$output" | tail -3
-  if ((rc != 0)); then
-    log_error "Failed to uninstall Puter CLI"
+  if ! npm uninstall -g "$PUTER_PACKAGE" &>>"$PUTER_LOG_FILE"; then
+    log_error "Failed to uninstall Puter CLI; see $PUTER_LOG_FILE"
     return 1
   fi
   log_success "Puter CLI uninstalled"
@@ -54,15 +47,15 @@ update_puter() {
 }
 
 _do_update_puter() {
-  local output rc
-  output="$(npm update -g "$PUTER_PACKAGE" 2>&1)"
-  rc=$?
-  printf '%s\n' "$output" | tail -3
-  if ((rc != 0)); then
-    log_error "Failed to update Puter CLI"
+  if ! npm update -g "$PUTER_PACKAGE" &>>"$PUTER_LOG_FILE"; then
+    log_error "Failed to update Puter CLI; see $PUTER_LOG_FILE"
     return 1
   fi
   command -v termux-fix-shebang &>/dev/null && termux-fix-shebang "$(command -v puter)" &>/dev/null || true
+  if ! command -v puter &>/dev/null || ! puter --help &>/dev/null; then
+    log_error "Puter CLI did not run after update; see $PUTER_LOG_FILE"
+    return 1
+  fi
 }
 
 reinstall_puter() {

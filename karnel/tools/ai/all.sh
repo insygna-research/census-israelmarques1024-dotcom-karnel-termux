@@ -113,18 +113,6 @@ _validate_tool_installed() {
   return 1
 }
 
-# Valida que o binário realmente executa (tenta --version ou --help)
-_validate_tool_executable() {
-  local binary="$1"
-  local tool_name="$2"
-  if command -v "$binary" &>/dev/null; then
-    # Tenta executar com --version (ignora exit code, só verifica se não crasha)
-    "$binary" --version &>/dev/null || "$binary" --help &>/dev/null || "$binary" -h &>/dev/null || true
-    return 0
-  fi
-  return 1
-}
-
 # ---- FUNÇÕES DE LOTE ----
 
 _all_ai_tools_action() {

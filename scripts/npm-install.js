@@ -3,7 +3,7 @@
 /**
  * npm/postinstall helper for Karnel
  *
- * Runs when `npm install -g karnel` is executed.
+ * Runs when `npm install -g karnel-termux` is executed.
  * Detects Termux environment and triggers install.sh if appropriate.
  *
  * This script is OPTIONAL — the `karnel` CLI works from the npm bin symlink
@@ -13,6 +13,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync, execFileSync } = require('child_process');
+const packageVersion = require('../package.json').version;
 
 const isTermux = () => {
   return (
@@ -87,10 +88,10 @@ const main = () => {
   }
 
   try {
-    execSync('bash install.sh', {
+    execFileSync('bash', ['install.sh', '--ref', `v${packageVersion}`], {
       cwd: path.resolve(__dirname, '..'),
       stdio: 'inherit',
-      env: { ...process.env, KARNEL_NPM_INSTALL: '1' }
+      env: process.env
     });
     console.log('[karnel] Installation complete! Run "karnel" to get started.');
   } catch (err) {

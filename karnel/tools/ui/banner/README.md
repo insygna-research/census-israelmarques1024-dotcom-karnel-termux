@@ -36,7 +36,6 @@ karnel update ui --banner
 
 ## Notes
 
-- Source file: `~/.local/share/karnel/assets/banner/karnel.txt`
+- Source: Karnel's `utils/banner.sh` script
 - removes Termux welcome message: motd
 - Restart Termux to apply changes
-

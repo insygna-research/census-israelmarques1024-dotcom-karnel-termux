@@ -7,6 +7,42 @@ import "@/utils/colors"
 LOG_FILE="$KARNEL_CACHE/install_ai.log"
 ODYSSEUS_DATA_DIR="$HOME/.local/share/karnel-data/odysseus"
 
+_odysseus_wrapper_owned() {
+  local marker="$ODYSSEUS_DATA_DIR/.karnel-wrapper-odysseus"
+  [[ -f "$marker" && -f "$PREFIX/bin/odysseus" ]] || return 1
+  [[ "$(sha256sum "$PREFIX/bin/odysseus" 2>/dev/null)" == "$(<"$marker")" ]]
+}
+
+_odysseus_data_owned() {
+  [[ -f "$ODYSSEUS_DATA_DIR/.karnel-managed" ]]
+}
+
+_odysseus_repo_dir() {
+  printf '%s/root/odysseus\n' "$1"
+}
+
+_odysseus_repo_owned() {
+  [[ -f "$1/.karnel-managed" ]]
+}
+
+_odysseus_verify_ownership() {
+  local ubuntu_root="$1" repo_dir
+  if [[ -e "$ODYSSEUS_DATA_DIR" ]] && ! _odysseus_data_owned; then
+    log_error "Refusing to replace unowned Odysseus data: $ODYSSEUS_DATA_DIR"
+    return 1
+  fi
+  if [[ -e "$PREFIX/bin/odysseus" ]] && ! _odysseus_wrapper_owned; then
+    log_error "Refusing to replace unowned command: $PREFIX/bin/odysseus"
+    return 1
+  fi
+  [[ -n "$ubuntu_root" ]] || return 0
+  repo_dir="$(_odysseus_repo_dir "$ubuntu_root")"
+  if [[ -e "$repo_dir" ]] && ! _odysseus_repo_owned "$repo_dir"; then
+    log_error "Refusing to replace unowned Odysseus repository: $repo_dir"
+    return 1
+  fi
+}
+
 _odysseus_dependencies() {
   loading "Installing dependencies" _odysseus_dependencies_impl
 }
@@ -59,11 +95,24 @@ _install_odysseus_impl() {
     pkg install proot-distro -y &>>"$LOG_FILE"
   fi
 
-  if [ ! -d "$(_odysseus_detect_ubuntu_root)" ]; then
-    proot-distro install ubuntu:24.04 &>>"$LOG_FILE"
+  local ubuntu_root
+  ubuntu_root="$(_odysseus_detect_ubuntu_root)"
+  _odysseus_verify_ownership "$ubuntu_root" || return 1
+
+  if [ ! -d "$ubuntu_root" ]; then
+    if ! proot-distro install ubuntu:24.04 &>>"$LOG_FILE"; then
+      log_error "Failed to install Ubuntu rootfs"
+      return 1
+    fi
   fi
 
-  _odysseus_proot_ubuntu /bin/bash -c '
+  ubuntu_root="$(_odysseus_detect_ubuntu_root)"
+  if [ -z "$ubuntu_root" ]; then
+    log_error "Ubuntu rootfs not found"
+    return 1
+  fi
+  _odysseus_verify_ownership "$ubuntu_root" || return 1
+  if ! _odysseus_proot_ubuntu /bin/bash -c '
     export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     export DEBIAN_FRONTEND=noninteractive
 
@@ -75,9 +124,12 @@ _install_odysseus_impl() {
       pyotp qrcode croniter pypdf beautifulsoup4 charset-normalizer \
       numpy chromadb-client fastembed youtube-transcript-api markdown \
       nh3 icalendar caldav pytest pytest-asyncio
-  ' &>>"$LOG_FILE"
+  ' &>>"$LOG_FILE"; then
+    log_error "Failed to install Odysseus dependencies"
+    return 1
+  fi
 
-  _odysseus_proot_ubuntu /bin/bash -c '
+  if ! _odysseus_proot_ubuntu /bin/bash -c '
     export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
     if [ ! -d /root/odysseus ]; then
@@ -88,22 +140,24 @@ _install_odysseus_impl() {
     if [ -f requirements.txt ]; then
       python3 -m pip install --break-system-packages -r requirements.txt 2>&1
     fi
-  ' &>>"$LOG_FILE"
-
-  local ubuntu_root
-  ubuntu_root="$(_odysseus_detect_ubuntu_root)"
-
-  if [ -z "$ubuntu_root" ]; then
-    log_error "Ubuntu rootfs not found"
+    : > /root/odysseus/.karnel-managed
+  ' &>>"$LOG_FILE"; then
+    log_error "Failed to install Odysseus repository"
     return 1
   fi
 
   local wrapper_path="$PREFIX/bin/odysseus"
-  cat > "$wrapper_path" << WRAPPER
+  mkdir -p "$PREFIX/bin" "$ODYSSEUS_DATA_DIR" || return 1
+  local temporary
+  temporary="$(mktemp "$PREFIX/bin/.odysseus.XXXXXX")" || return 1
+  cat > "$temporary" << WRAPPER
 #!$PREFIX/bin/bash
 exec proot-distro login --shared-tmp ubuntu -- bash -c 'cd /root/odysseus && exec python3 app.py "\$@"' bash "\$@"
 WRAPPER
-  chmod +x "$wrapper_path"
+  chmod +x "$temporary"
+  mv -f "$temporary" "$wrapper_path" || return 1
+  sha256sum "$wrapper_path" >"$ODYSSEUS_DATA_DIR/.karnel-wrapper-odysseus" || return 1
+  : >"$ODYSSEUS_DATA_DIR/.karnel-managed"
 
   log_success "Odysseus installed (proot-distro)"
   echo
@@ -114,11 +168,15 @@ WRAPPER
 _install_odysseus_native() {
   mkdir -p "$(dirname "$LOG_FILE")"
 
+  local ubuntu_root
+  ubuntu_root="$(_odysseus_detect_ubuntu_root)"
+  _odysseus_verify_ownership "$ubuntu_root" || return 1
+
   if ! command -v glibc-repo &>/dev/null && ! command -v glibc &>/dev/null; then
     pkg install glibc-repo glibc clang curl git tar -y &>>"$LOG_FILE" || true
   fi
 
-  _odysseus_proot_ubuntu /bin/bash -c '
+  if ! _odysseus_proot_ubuntu /bin/bash -c '
     export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     export DEBIAN_FRONTEND=noninteractive
 
@@ -130,15 +188,24 @@ _install_odysseus_native() {
     if [ -f requirements.txt ]; then
       python3 -m pip install --break-system-packages -r requirements.txt 2>&1
     fi
-  ' &>>"$LOG_FILE"
+    : > /root/odysseus/.karnel-managed
+  ' &>>"$LOG_FILE"; then
+    log_error "Failed to install Odysseus repository"
+    return 1
+  fi
 
-  mkdir -p "$ODYSSEUS_DATA_DIR"
+  mkdir -p "$PREFIX/bin" "$ODYSSEUS_DATA_DIR" || return 1
   local wrapper_path="$PREFIX/bin/odysseus"
-  cat > "$wrapper_path" << WRAPPER
+  local temporary
+  temporary="$(mktemp "$PREFIX/bin/.odysseus.XXXXXX")" || return 1
+  cat > "$temporary" << WRAPPER
 #!$PREFIX/bin/bash
 exec proot-distro login --shared-tmp ubuntu -- bash -c 'cd /root/odysseus && exec python3 app.py "\$@"' bash "\$@"
 WRAPPER
-  chmod +x "$wrapper_path"
+  chmod +x "$temporary"
+  mv -f "$temporary" "$wrapper_path" || return 1
+  sha256sum "$wrapper_path" >"$ODYSSEUS_DATA_DIR/.karnel-wrapper-odysseus" || return 1
+  : >"$ODYSSEUS_DATA_DIR/.karnel-managed"
 
   log_success "Odysseus installed (native glibc)"
   echo
@@ -147,10 +214,14 @@ WRAPPER
 }
 
 install_odysseus() {
-  if command -v odysseus &>/dev/null || [ -d "$ODYSSEUS_DATA_DIR/repo" ]; then
+  local ubuntu_root
+  ubuntu_root="$(_odysseus_detect_ubuntu_root)"
+  if _odysseus_wrapper_owned && _odysseus_data_owned; then
     log_info "Odysseus is already installed"
     return 2
   fi
+
+  _odysseus_verify_ownership "$ubuntu_root" || return 1
 
   log_info "Installing Odysseus..."
 
@@ -169,12 +240,14 @@ uninstall_odysseus() {
   log_info "Uninstalling Odysseus..."
   mkdir -p "$(dirname "$LOG_FILE")"
 
-  if [ -f "$PREFIX/bin/odysseus" ]; then
-    rm -f "$PREFIX/bin/odysseus"
-  fi
+  _odysseus_wrapper_owned && rm -f "$PREFIX/bin/odysseus"
+  _odysseus_data_owned && rm -rf "$ODYSSEUS_DATA_DIR"
 
-  if [ -d "$ODYSSEUS_DATA_DIR" ]; then
-    rm -rf "$ODYSSEUS_DATA_DIR"
+  local ubuntu_root repo_dir
+  ubuntu_root="$(_odysseus_detect_ubuntu_root)"
+  if [[ -n "$ubuntu_root" ]]; then
+    repo_dir="$(_odysseus_repo_dir "$ubuntu_root")"
+    _odysseus_repo_owned "$repo_dir" && rm -rf "$repo_dir"
   fi
 
   log_success "Odysseus uninstalled"

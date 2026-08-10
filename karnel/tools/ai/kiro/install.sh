@@ -6,8 +6,18 @@ import "@/utils/version"
 
 LOG_FILE="$KARNEL_CACHE/install_ai.log"
 
+_kiro_is_usable() {
+  local binary
+  for binary in kiro kiro-cli; do
+    if command -v "$binary" &>/dev/null && "$binary" --version &>/dev/null; then
+      return 0
+    fi
+  done
+  return 1
+}
+
 install_kiro() {
-  if command -v kiro &>/dev/null || command -v kiro-cli &>/dev/null; then
+  if _kiro_is_usable; then
     log_info "Kiro is already installed"
     return 2
   fi
@@ -29,7 +39,7 @@ install_kiro() {
   if [[ -n "$install_script" ]]; then
     if bash -s -- <<<"$install_script" 2>>"$LOG_FILE"; then
       hash -r
-      if command -v kiro &>/dev/null || command -v kiro-cli &>/dev/null; then
+      if _kiro_is_usable; then
         log_success "Kiro installed successfully"
         return 0
       fi
@@ -99,7 +109,7 @@ for p in d['packages']:
         ln -sf "$PREFIX/bin/kiro-cli" "$PREFIX/bin/kiro"
         rm -rf "$tmpdir"
         hash -r
-        if command -v kiro-cli &>/dev/null || command -v kiro &>/dev/null; then
+        if _kiro_is_usable; then
           log_success "Kiro installed from direct download"
           return 0
         fi
@@ -112,13 +122,13 @@ for p in d['packages']:
           if [[ ! -f $PREFIX/glibc/lib/libc.so.6 ]]; then
             yes | pkg install glibc &>>"$LOG_FILE"
           fi
-          if command -v kiro-cli &>/dev/null || command -v kiro &>/dev/null; then
+          if _kiro_is_usable; then
             log_success "Kiro installed successfully after glibc install"
             return 0
           else
             log_warn "Kiro binary installed but still cannot execute"
             log_info "Try: ${D_CYAN}proot-distro install ubuntu${NC}"
-            return 0
+            return 1
           fi
         fi
       fi
@@ -127,7 +137,7 @@ for p in d['packages']:
 
   rm -rf "$tmpdir"
   log_error "Failed to install Kiro"
-  log_info "You can try manually: curl -fsSL https://cli.kiro.dev/install | bash"
+  log_info "See the official Kiro CLI documentation for manual installation options."
   return 1
 }
 

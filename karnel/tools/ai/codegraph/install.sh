@@ -39,6 +39,7 @@ _download_codegraph() {
 }
 
 _download_codegraph_impl() {
+	local staging_dir old_dir
 	LATEST_VERSION=$(curl -sI https://github.com/colbymchenry/codegraph/releases/latest | grep -i location | sed -E 's#.*/tag/([^[:space:]]+).*#\1#')
 	LATEST_VERSION="${LATEST_VERSION#v}"
 
@@ -52,22 +53,35 @@ _download_codegraph_impl() {
 		return 1
 	fi
 
-	local tarball
-	tarball=$(mktemp "$KARNEL_DATA/codegraph-XXXXXX.tar.gz")
+	mkdir -p "$KARNEL_DATA"
+	staging_dir=$(mktemp -d "$KARNEL_DATA/.codegraph.XXXXXX") || return 1
+	local tarball="$staging_dir/codegraph.tar.gz"
 
 	if ! curl -L "https://github.com/colbymchenry/codegraph/releases/download/v${LATEST_VERSION}/codegraph-linux-arm64.tar.gz" -o "$tarball" &>>"$LOG_FILE"; then
 		log_error "Failed to download CodeGraph"
-		rm -f "$tarball"
+		rm -rf "$staging_dir"
 		return 1
 	fi
 
-	if ! tar -xzf "$tarball" -C "$KARNEL_DATA" &>>"$LOG_FILE"; then
+	if ! tar -xzf "$tarball" -C "$staging_dir" &>>"$LOG_FILE" ||
+		[[ ! -f "$staging_dir/codegraph-linux-arm64/lib/dist/bin/codegraph.js" ]]; then
 		log_error "Failed to extract CodeGraph"
-		rm -f "$tarball"
+		rm -rf "$staging_dir"
 		return 1
 	fi
 
 	rm -f "$tarball"
+	old_dir="$KARNEL_DATA/.codegraph-linux-arm64.previous.$$"
+	if [ -d "$KARNEL_DATA/codegraph-linux-arm64" ] && ! mv "$KARNEL_DATA/codegraph-linux-arm64" "$old_dir"; then
+		rm -rf "$staging_dir"
+		return 1
+	fi
+	if ! mv "$staging_dir/codegraph-linux-arm64" "$KARNEL_DATA/codegraph-linux-arm64"; then
+		[[ -d "$old_dir" ]] && mv "$old_dir" "$KARNEL_DATA/codegraph-linux-arm64"
+		rm -rf "$staging_dir"
+		return 1
+	fi
+	rm -rf "$staging_dir" "$old_dir"
 
 	return 0
 }
@@ -82,8 +96,23 @@ _write_codegraph_wrapper_impl() {
 		log_error "Wrapper template not found at $wrapper_src"
 		return 1
 	fi
-	cp "$wrapper_src" "$PREFIX/bin/codegraph"
-	chmod +x "$PREFIX/bin/codegraph"
+	local staging_wrapper old_wrapper
+	mkdir -p "$PREFIX/bin"
+	staging_wrapper=$(mktemp "$PREFIX/bin/.codegraph.XXXXXX") || return 1
+	if ! cp "$wrapper_src" "$staging_wrapper" || ! chmod +x "$staging_wrapper" || [[ ! -x "$staging_wrapper" ]]; then
+		rm -f "$staging_wrapper"
+		return 1
+	fi
+	old_wrapper="$PREFIX/bin/codegraph.previous.$$"
+	if [ -e "$PREFIX/bin/codegraph" ] && ! mv "$PREFIX/bin/codegraph" "$old_wrapper"; then
+		rm -f "$staging_wrapper"
+		return 1
+	fi
+	if ! mv "$staging_wrapper" "$PREFIX/bin/codegraph"; then
+		[[ -e "$old_wrapper" ]] && mv "$old_wrapper" "$PREFIX/bin/codegraph"
+		return 1
+	fi
+	rm -f "$old_wrapper"
 
 	return 0
 }
@@ -136,7 +165,6 @@ update_codegraph() {
 }
 
 _do_update_codegraph() {
-  loading "Removing old CodeGraph" _update_codegraph_remove_impl
   _codegraph_dependencies || return 1
   _download_codegraph || return 1
   _write_codegraph_wrapper || return 1

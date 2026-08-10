@@ -22,8 +22,13 @@ _install_font_impl() {
 }
 
 install_font() {
-	if [[ -f "$TERMUX_DIR/font.ttf" ]]; then
+	local font_source="$TERMUX_ASSETS_DIR/fonts/font.ttf"
+	if [[ -f "$font_source" ]] && cmp -s "$font_source" "$TERMUX_DIR/font.ttf"; then
 		log_info "Meslo Nerd Font already installed"
+		return 0
+	fi
+	if [[ -f "$TERMUX_DIR/font.ttf" ]]; then
+		log_warn "Keeping existing custom Termux font"
 		return 0
 	fi
 	log_info "Installing Meslo Nerd Font..."
@@ -32,8 +37,12 @@ install_font() {
 
 _uninstall_font_impl() {
 	if [[ -f "$TERMUX_DIR/font.ttf" ]]; then
-		rm "$TERMUX_DIR/font.ttf"
-		log_success "Meslo Nerd Font uninstalled"
+		if cmp -s "$TERMUX_ASSETS_DIR/fonts/font.ttf" "$TERMUX_DIR/font.ttf"; then
+			rm "$TERMUX_DIR/font.ttf"
+			log_success "Meslo Nerd Font uninstalled"
+		else
+			log_warn "Keeping existing custom Termux font"
+		fi
 	else
 		log_warn "Meslo Nerd Font not installed"
 	fi

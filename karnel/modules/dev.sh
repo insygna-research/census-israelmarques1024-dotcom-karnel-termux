@@ -36,10 +36,6 @@ _install_dev_wrapper() {
 }
 
 uninstall_dev() {
-	if ! command -v gh &>/dev/null; then
-		log_info "Development Tools are not installed"
-		return 0
-	fi
 	separator
 	box "Uninstalling Development Tools"
 	separator

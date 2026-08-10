@@ -610,6 +610,26 @@ test_network_failure_and_unsafe_trust_gate() {
   [[ ! -e "$PLUGINS_DIR/arbitrary-plugin" ]]
 }
 
+test_registry_root_is_pinned_and_verified() {
+  local original_checksum="$PLUGIN_REGISTRY_SHA256"
+  local checksum
+
+  [[ "$PLUGIN_REGISTRY_URL" == *"/$PLUGIN_REGISTRY_COMMIT/registry.json" ]] || return 1
+  [[ "$PLUGIN_REGISTRY_COMMIT" =~ ^[0-9a-f]{40}$ ]] || return 1
+  [[ "$PLUGIN_REGISTRY_SHA256" =~ ^[0-9a-f]{64}$ ]] || return 1
+
+  checksum="$(_plugin_file_sha256 "$TEST_REGISTRY")" || return 1
+  PLUGIN_REGISTRY_SHA256="$checksum"
+  _plugin_verify_registry_checksum "$TEST_REGISTRY" || return 1
+
+  PLUGIN_REGISTRY_SHA256="0000000000000000000000000000000000000000000000000000000000000000"
+  if _plugin_verify_registry_checksum "$TEST_REGISTRY" >/dev/null 2>&1; then
+    PLUGIN_REGISTRY_SHA256="$original_checksum"
+    return 1
+  fi
+  PLUGIN_REGISTRY_SHA256="$original_checksum"
+}
+
 run_test "registry multiline, filters and empty registry" test_registry_multiline_search_and_empty_registry
 run_test "valid approved installation and dispatch" test_valid_install_and_dispatch
 run_test "official-style subdirectory plugin completes the trusted flow" test_official_style_plugin_from_subdirectory
@@ -627,6 +647,7 @@ run_test "reinstall uses validated replacement" test_reinstall_uses_validated_re
 run_test "removal stays inside plugin directory" test_secure_removal_and_symlink_guard
 run_test "failed update preserves installed plugin" test_failed_update_rolls_back
 run_test "network failures and unsafe trust gate" test_network_failure_and_unsafe_trust_gate
+run_test "registry root is pinned and checksum verified" test_registry_root_is_pinned_and_verified
 
 printf 'Plugin tests: %d run, %d failure(s)\n' "$TESTS_RUN" "$TESTS_FAILED"
 ((TESTS_FAILED == 0))

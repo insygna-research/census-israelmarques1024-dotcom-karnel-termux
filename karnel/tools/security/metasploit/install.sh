@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-METASPLOIT_DIR="$PREFIX/opt/metasploit-framework"
+METASPLOIT_DIR="${KARNEL_DATA:-${XDG_DATA_HOME:-$HOME/.local/share}/karnel-data}/tools/metasploit-framework"
 
 install_metasploit() {
   if command -v msfconsole &>/dev/null; then
@@ -17,6 +17,7 @@ install_metasploit() {
   pkg install -y ruby git curl autoconf bison flex openssl libxml2 libxslt libyaml ncurses zlib 2>/dev/null
 
   if [ ! -d "$METASPLOIT_DIR" ]; then
+    mkdir -p "$(dirname "$METASPLOIT_DIR")" || return 1
     git clone --depth 1 https://github.com/rapid7/metasploit-framework "$METASPLOIT_DIR" 2>/dev/null || {
       log_error "Falha ao clonar Metasploit"
       return 1
@@ -30,11 +31,12 @@ install_metasploit() {
   for bin in msfconsole msfvenom msfrpc msfrpcd msfdb; do
     cat > "$PREFIX/bin/$bin" << BINEOF
 #!/usr/bin/env bash
-cd "$METASPLOIT_DIR"
-bundle exec ruby \$0 "\$@"
+exec bundle exec ruby "$METASPLOIT_DIR/$bin" "\$@"
 BINEOF
     chmod +x "$PREFIX/bin/$bin"
+    sha256sum "$PREFIX/bin/$bin" > "$METASPLOIT_DIR/.karnel-wrapper-$bin"
   done
+  : > "$METASPLOIT_DIR/.karnel-installed"
 
   log_success "metasploit instalado"
   return 0
@@ -43,9 +45,11 @@ BINEOF
 uninstall_metasploit() {
   log_info "Removendo Metasploit..."
   for bin in msfconsole msfvenom msfrpc msfrpcd msfdb; do
-    rm -f "$PREFIX/bin/$bin"
+    if [ -f "$METASPLOIT_DIR/.karnel-wrapper-$bin" ]; then
+      [ "$(sha256sum "$PREFIX/bin/$bin" 2>/dev/null)" = "$(<"$METASPLOIT_DIR/.karnel-wrapper-$bin")" ] && rm -f "$PREFIX/bin/$bin"
+    fi
   done
-  rm -rf "$METASPLOIT_DIR"
+  [ -f "$METASPLOIT_DIR/.karnel-installed" ] && rm -rf "$METASPLOIT_DIR"
   log_success "metasploit removido"
 }
 

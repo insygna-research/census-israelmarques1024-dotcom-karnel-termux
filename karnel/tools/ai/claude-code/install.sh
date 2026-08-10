@@ -154,14 +154,14 @@ _install_claude_proot_impl() {
   fi
 
   _claude_proot_ubuntu /bin/bash -c \
-    'apt-get update && apt-get upgrade -y && apt-get install -y curl ca-certificates' \
+    'apt-get update && apt-get upgrade -y && apt-get install -y ca-certificates nodejs npm' \
     &>>"$LOG_FILE"
 
   _claude_proot_ubuntu /bin/bash -c '
 		export SHELL=/bin/bash
 		export TMPDIR=/tmp
 		export HOME=/root
-		curl -fsSL https://claude.ai/install.sh | bash
+		npm install -g @anthropic-ai/claude-code@2.1.226
 	' &>>"$LOG_FILE"
 
   local ubuntu_root
@@ -262,7 +262,7 @@ _do_update_claude_code() {
 
   _claude_proot_ubuntu /bin/bash -c '
     export HOME=/root
-    curl -fsSL https://claude.ai/install.sh | bash
+    npm install -g @anthropic-ai/claude-code@2.1.226
   ' &>>"$LOG_FILE"
 
   if ! _claude_proot_ubuntu test -x /root/.local/bin/claude &>>"$LOG_FILE"; then

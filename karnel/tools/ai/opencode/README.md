@@ -16,7 +16,7 @@ OpenCode is an AI-powered coding agent developed by anomalyco that operates dire
 ## Dependencies
 
 - **Native mode:** glibc-repo, glibc, clang, git, ripgrep, python, jq, nodejs-lts, curl, tar
-- **Proot mode:** proot-distro, curl, ca-certificates
+- **Proot mode:** proot-distro, ca-certificates, nodejs, npm
 
 ## Install
 
@@ -26,8 +26,8 @@ karnel install ai --opencode
 
 You will be prompted to choose:
 
-1. **Native (recommended)** — Compiles a glibc bootstrapper and downloads the latest OpenCode binary from GitHub releases
-2. **Proot-distro (alternative)** — Runs OpenCode inside an Ubuntu proot-distro container
+1. **Native (recommended)** — Compiles a glibc bootstrapper and downloads the OpenCode release configured by Karnel
+2. **Proot-distro (alternative)** — Runs the pinned `opencode-ai@1.18.15` npm package inside an Ubuntu container
 
 ## Uninstall
 
@@ -46,6 +46,5 @@ karnel update ai --opencode
 - **Native mode** requires `glibc-repo`, `glibc`, `clang`, and other dependencies (installed automatically)
 - The native binary is stored in `~/.local/share/karnel-data/opencode/`
 - A small C bootstrapper (`opencode_helper.c`) handles ELF loading via the glibc dynamic linker
-- **Proot mode** uses `proot-distro ubuntu` and installs via the official opencode.ai installer
+- **Proot mode** uses `proot-distro ubuntu` and installs the pinned `opencode-ai@1.18.15` npm package
 - Data directory: `~/.local/share/karnel-data/opencode/`
-

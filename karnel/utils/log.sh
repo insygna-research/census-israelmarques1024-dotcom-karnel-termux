@@ -60,15 +60,6 @@ separator() {
 	echo -e "${GRAY}${line// /─}${NC}"
 }
 
-separator_double() {
-	local cols
-	cols=$(tput cols 2>/dev/null || echo 80)
-	local line
-	line=$(printf "%${cols}s")
-	echo -e "${GRAY}${line// /═}${NC}"
-	echo -e "${GRAY}${line// /═}${NC}"
-}
-
 separator_section() {
 	local title="$1"
 	local cols
@@ -78,48 +69,6 @@ separator_section() {
 	line=$(printf "%${padding}s")
 
 	echo -e "${GRAY}${line// /─} ${D_CYAN}${title}${GRAY} ${line// /─}${NC}"
-}
-
-box_large() {
-  local text="$1"
-  local len=${#text}
-  local line
-  line=$(printf "%$((len + 4))s")
-
-  echo -e "${GRAY}╔${line// /═}╗${NC}"
-  echo -e "${GRAY}║${D_CYAN}  $text  ${GRAY}║${NC}"
-  echo -e "${GRAY}╚${line// /═}╝${NC}"
-}
-
-box_with_subtitle() {
-  local title="$1"
-  local subtitle="$2"
-  local max_len=$(( ${#title} > ${#subtitle} ? ${#title} : ${#subtitle} ))
-  local line
-  line=$(printf "%$((max_len + 2))s")
-
-  echo -e "${GRAY}╭${line// /─}╮${NC}"
-  echo -e "${GRAY}│${D_CYAN} $title${GRAY}$(printf "%$((max_len - ${#title}))s") │${NC}"
-  echo -e "${GRAY}│${D_PURPLE} $subtitle${GRAY}$(printf "%$((max_len - ${#subtitle}))s") │${NC}"
-  echo -e "${GRAY}╰${line// /─}╯${NC}"
-}
-
-# ===== CENTER TEXT =====
-
-center_text() {
-	local cols
-	cols=$(tput cols 2>/dev/null || echo 80)
-	local text="$1"
-	local padding=$(( (cols - ${#text}) / 2 ))
-
-	# Remover códigos ANSI para calcular padding correcto
-	local clean_text
-	clean_text=$(echo -e "$text" | sed 's/\x1b\[[0-9;]*m//g')
-	local clean_len=${#clean_text}
-	padding=$(( (cols - clean_len) / 2 ))
-
-	printf "%${padding}s" ""
-	echo -e "$text"
 }
 
 # ===== BOX FUNCTIONS =====
@@ -395,38 +344,6 @@ read_confirm_default() {
 	done
 }
 
-# --- Entrada multi-línea ---
-read_multiline() {
-	local initial="$1"
-	local tmpfile
-	tmpfile=$(mktemp)
-
-	echo "$initial" >"$tmpfile"
-	echo >>"$tmpfile"
-
-	local cols
-	cols=$(tput cols 2>/dev/null || echo 80)
-	local w=$((cols - 6))
-	local bar
-	printf -v bar '%*s' "$w" ''
-
-	echo -e "    ${GRAY}╭${bar// /─}╮${NC}" >&2
-	printf "    ${GRAY}│${NC}  ${D_CYAN}✎  Write your content${D_NC}%*s ${GRAY}│${NC}\n" $((w - 26)) "" >&2
-	printf "    ${GRAY}│${NC}  ${D_DIM}(Ctrl+D to finish, Ctrl+C to cancel)${D_NC}%*s ${GRAY}│${NC}\n" $((w - 40)) "" >&2
-	echo -e "    ${GRAY}├${bar// /─}┤${NC}" >&2
-
-	local line
-	while IFS= read -r line; do
-		echo "$line" >>"$tmpfile"
-	done
-
-	echo >&2
-	echo -e "    ${GRAY}╰${bar// /─}╯${NC}" >&2
-	echo -e "    ${GRAY}${D_GREEN}✔ Content captured${D_NC}" >&2
-
-	echo "$tmpfile"
-}
-
 # --- Selección de opciones ---
 # Uso: read_select "Prompt" VAR_NAME "Opción1" "Opción2" ...
 # VAR_NAME recibe el texto de la opción elegida
@@ -605,70 +522,10 @@ progress_done() {
 	printf "\n    ${GREEN}✔${D_NC} Complete\n"
 }
 
-# ===== STEP FUNCTIONS =====
-
-step_start() {
-	local step="$1"
-	local message="$2"
-	echo -e "    ${D_CYAN}[$step]${D_NC} $message"
-}
-
-step_success() {
-	local step="$1"
-	local message="$2"
-	echo -e "    ${GREEN}[$step]${D_GREEN} $message ✔${NC}"
-}
-
-step_error() {
-  local step="$1"
-  local message="$2"
-  echo -e "    ${RED}[$step]${D_RED} $message ✖${NC}" >&2
-}
-
-# ===== STATUS ICONS =====
-
-icon_success() {
-  echo -e "${GREEN}✓${NC}"
-}
-
-icon_error() {
-  echo -e "${RED}✗${NC}"
-}
-
-icon_warning() {
-  echo -e "${YELLOW}⚠${NC}"
-}
-
-icon_info() {
-  echo -e "${CYAN}ℹ${NC}"
-}
-
-icon_arrow() {
-  echo -e "${D_CYAN}→${NC}"
-}
-
 # ===== BADGE FUNCTIONS =====
 
 badge() {
   local text="$1"
   local color="${2:-D_CYAN}"
   echo -e "${!color}[ $text ]${NC}"
-}
-
-badge_new() {
-  echo -e "${D_GREEN}[ NEW ]${NC}"
-}
-
-badge_beta() {
-  echo -e "${D_YELLOW}[ BETA ]${NC}"
-}
-
-badge_deprecated() {
-  echo -e "${D_RED}[ DEPRECATED ]${NC}"
-}
-
-# ===== TIP FUNCTION =====
-
-log_tip() {
-  echo -e "    ${D_CYAN}●${NC} $*"
 }

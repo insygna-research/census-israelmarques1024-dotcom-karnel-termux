@@ -29,10 +29,6 @@ install_network() {
 }
 
 uninstall_network() {
-  if ! command -v dark &>/dev/null && ! command -v dedsec-network &>/dev/null; then
-    log_info "Network Tools are not installed"
-    return 0
-  fi
   separator
   box "Uninstalling Network Tools"
   separator

@@ -36,7 +36,7 @@ karnel install <module> --tool1 --tool2  # Install specific tools only
 | `osint`   | Robin v2.8 — dark web OSINT via Tor + LLM |
 | `voice`   | Speech-to-agent via Termux:API |
 | `security`| Nmap, Hydra, SQLMap, Metasploit, and 26 other tools |
-| `plugin`  | Install plugins from the official registry |
+| `plugin`  | Built-in manager for plugins from the official registry |
 
 ### Per-module tool flags
 
@@ -76,8 +76,8 @@ karnel uninstall <module> --tool1 --tool2
 
 Same modules and flags as `install`. Removes installed packages and binaries.
 User configuration is preserved by default; Karnel asks for confirmation before
-removing configuration paths it manages. `ui --extra-keys` is a legacy
-exception: it replaces and removes `~/.termux/termux.properties` directly.
+removing configuration paths it manages. `ui --extra-keys` adds and removes
+only its marked block in `~/.termux/termux.properties`.
 
 ```bash
 karnel uninstall ai --opencode --ollama
@@ -205,6 +205,7 @@ Opens the official documentation page for a module using
 | `ui`             | Termux UI |
 | `auto`           | Automation tools |
 | `deploy`         | Deploy CLIs |
+| `supabase`       | Supabase CLI |
 | `games`          | Games |
 | `cleanup`        | Cache cleanup |
 | `network`        | Network tools |
@@ -778,7 +779,10 @@ The main tool modules work with `install`, `uninstall`, `reinstall`, `update`,
 `list`, `show`, and `open`:
 
 `ai` `auto` `db` `deploy` `dev` `editor` `games` `lang` `network` `npm`
-`osint` `security` `shell` `ui` `utils` `voice`
+`osint` `security` `shell` `ui` `utils`
+
+`voice` works with `install`, `uninstall`, `reinstall`, `update`, `list`, and
+`open`; it has no per-tool README for `show`.
 
 `plugin` works with `install`, `uninstall`, `reinstall`, `update`, `list`, and
 `open`, but does not expose tool documentation through `show`.

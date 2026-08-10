@@ -38,6 +38,5 @@ karnel update ui --extra-keys
 
 - Config file: `~/.termux/termux.properties`
 - Adds two extra key rows with navigation keys
-- Includes ESC, arrow keys, function keys
+- Includes ESC, TAB, CTRL, ALT, arrows, HOME, END, PGUP, PGDN, `</>` and `-`
 - Restart Termux to apply changes
-

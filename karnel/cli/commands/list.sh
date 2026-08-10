@@ -197,7 +197,7 @@ _list_ai() {
   table_row "Cline CLI" "--cline" "cline" "$(_check_cmd "cline")"
   table_row "Odysseus" "--odysseus" "odysseus" "$(_check_cmd "odysseus")"
   table_row "Kimchi CLI" "--kimchi-code" "kimchi" "$(_check_cmd "kimchi")"
-  table_row "omniRoute" "--omni-route" "omni-route" "$(_check_cmd "omni-route")"
+  table_row "omniRoute" "--omni-route" "omni-route" "$(_check_omni_route)"
   table_row "Context7 Docs" "--ctx7" "ctx7" "$(_check_cmd "ctx7")"
   table_row "OpenSpec SDD" "--openspec" "openspec" "$(_check_cmd "openspec")"
   table_row "Qoder" "--qoder" "qodercli" "$(_check_cmd "qodercli")"
@@ -229,7 +229,7 @@ _list_editor() {
   table_start "Component" "Install Flag" "Status"
   table_row "code-server" "--code-server" "$(_check_cmd "code-server")"
   table_row "neovim" "--neovim" "$(_check_cmd "nvim")"
-  table_row "nvchad" "--nvchad" "$(_check_cmd "nvim")"
+  table_row "nvchad" "--nvchad" "$(_check_nvchad)"
   table_end
 
   echo
@@ -364,9 +364,9 @@ _list_ui() {
   echo
 
   table_start "Component" "Install Flag" "Status"
-  table_row "Meslo Nerd Font" "--font" "$(_check_file "$HOME/.termux/font.ttf")"
+  table_row "Meslo Nerd Font" "--font" "$(_check_font)"
   table_row "Extra Keys" "--extra-keys" "$(_check_extra_keys)"
-  table_row "Cursor Color" "--cursor" "$(_check_file "$HOME/.termux/colors.properties")"
+  table_row "Cursor Color" "--cursor" "$(_check_cursor)"
   table_row "Startup Banner" "--banner" "$(_grep_config "$HOME/.zshrc" "# ===== Karnel Banner =====" "$HOME/.bashrc")"
   table_end
 
@@ -474,6 +474,22 @@ _check_cmd() {
   fi
 }
 
+_check_omni_route() {
+  if command -v omni-route &>/dev/null && omni-route --version &>/dev/null 2>&1; then
+    echo -e "${D_GREEN}installed${NC}"
+  else
+    echo -e "${D_RED}not installed${NC}"
+  fi
+}
+
+_check_nvchad() {
+  if [[ -d "$KARNEL_DATA/nvchad-termux/.git" && -d "$HOME/.config/nvim" ]]; then
+    echo -e "${D_GREEN}installed${NC}"
+  else
+    echo -e "${D_RED}not installed${NC}"
+  fi
+}
+
 # Check if any of the comma-separated commands exists
 _check_cmd_any() {
   local bin_list="$1"
@@ -498,16 +514,6 @@ _check_pkg() {
   fi
 }
 
-# Check if directory exists
-_check_dir() {
-  local dir="$1"
-  if [[ -d "$dir" ]]; then
-    echo -e "${D_GREEN}installed${NC}"
-  else
-    echo -e "${D_RED}not installed${NC}"
-  fi
-}
-
 _check_robin() {
   if _robin_is_installed; then
     echo -e "${D_GREEN}installed${NC}"
@@ -516,10 +522,19 @@ _check_robin() {
   fi
 }
 
-# Check if file exists
-_check_file() {
-  local file="$1"
-  if [[ -f "$file" ]]; then
+_check_font() {
+  local font_source
+  font_source="$(dirname "$KARNEL_PATH")/assets/fonts/font.ttf"
+  if [[ -f "$font_source" ]] && cmp -s "$font_source" "$HOME/.termux/font.ttf"; then
+    echo -e "${D_GREEN}installed${NC}"
+  else
+    echo -e "${D_RED}not installed${NC}"
+  fi
+}
+
+_check_cursor() {
+  if grep -qF '# Karnel cursor begin' "$HOME/.termux/colors.properties" 2>/dev/null &&
+    grep -qF '# Karnel cursor end' "$HOME/.termux/colors.properties" 2>/dev/null; then
     echo -e "${D_GREEN}installed${NC}"
   else
     echo -e "${D_RED}not installed${NC}"

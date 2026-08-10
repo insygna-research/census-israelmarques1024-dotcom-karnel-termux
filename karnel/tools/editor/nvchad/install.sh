@@ -58,7 +58,7 @@ _install_nvchad_impl() {
 }
 
 install_nvchad() {
-  if [[ -d "$HOME/.config/nvim" ]]; then
+  if [[ -d "$NVCHAD_DIR/.git" && -d "$HOME/.config/nvim" ]]; then
     log_info "NvChad already installed"
     return 0
   fi
@@ -97,8 +97,12 @@ _update_nvchad() {
 }
 
 _do_nvchad_update() {
-  rm -rf "$HOME/.config/nvim" 2>/dev/null
-  cp -r "$NVCHAD_DIR/nvim" "$HOME/.config/nvim"
+  if [[ ! -d "$NVCHAD_DIR/.git" || ! -d "$NVCHAD_DIR/nvim" ]]; then
+    log_error "NvChad source is not managed by Karnel; refusing to replace Neovim configuration"
+    return 1
+  fi
+  git -C "$NVCHAD_DIR" pull --ff-only &>>"$LOG_FILE" || return 1
+  log_success "NvChad source updated; existing Neovim configuration was preserved"
 }
 
 update_nvchad() {

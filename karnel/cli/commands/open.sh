@@ -48,6 +48,9 @@ open_main() {
 	deploy)
 		url="$OPEN_BASE_URL/karnel/deploy"
 		;;
+	supabase)
+		url="$OPEN_BASE_URL/karnel/supabase"
+		;;
   cleanup)
     url="$OPEN_BASE_URL/karnel/cleanup"
     ;;
@@ -129,6 +132,7 @@ open_help() {
 	printf "    ${D_GREEN}%-14s${NC} ${D_DIM}%s${NC}\n" "ui" "Termux UI"
   printf "    ${D_GREEN}%-14s${NC} ${D_DIM}%s${NC}\n" "auto" "Automation tools"
   printf "    ${D_GREEN}%-14s${NC} ${D_DIM}%s${NC}\n" "deploy" "Deploy CLIs"
+  printf "    ${D_GREEN}%-14s${NC} ${D_DIM}%s${NC}\n" "supabase" "Supabase CLI"
   printf "    ${D_GREEN}%-14s${NC} ${D_DIM}%s${NC}\n" "games" "Games"
   printf "    ${D_GREEN}%-14s${NC} ${D_DIM}%s${NC}\n" "cleanup" "Cache cleanup"
   printf "    ${D_GREEN}%-14s${NC} ${D_DIM}%s${NC}\n" "network" "Network tools"

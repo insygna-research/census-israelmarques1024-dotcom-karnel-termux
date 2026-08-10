@@ -16,3 +16,13 @@ confirm_remove_paths() {
 
   rm -rf -- "${existing[@]}"
 }
+
+remove_marked_block() {
+  local file="$1" begin="$2" end="$3" start_line end_line
+
+  start_line="$(grep -nF "$begin" "$file" 2>/dev/null | head -1 | cut -d: -f1)"
+  end_line="$(grep -nF "$end" "$file" 2>/dev/null | head -1 | cut -d: -f1)"
+  [[ -n "$start_line" && -n "$end_line" && "$end_line" -ge "$start_line" ]] || return 2
+
+  sed -i "${start_line},${end_line}d" "$file"
+}

@@ -4,7 +4,83 @@ import "@/utils/log"
 import "@/utils/version"
 
 LOG_FILE="$KARNEL_CACHE/install_deploy.log"
-RAILWAY_DATA_DIR="$HOME/.local/share/karnel-data/railway"
+RAILWAY_DATA_DIR="${KARNEL_DATA:-${XDG_DATA_HOME:-$HOME/.local/share}/karnel-data}/deploy/railway"
+_RAILWAY_MARKER="$PREFIX/share/karnel-installers/railway"
+_RAILWAY_DATA_MARKER="$RAILWAY_DATA_DIR/.karnel-managed"
+_RAILWAY_DATA_MANIFEST="$RAILWAY_DATA_DIR/.karnel-manifest"
+_RAILWAY_DATA_INVENTORY="$RAILWAY_DATA_DIR/.karnel-inventory"
+
+_railway_data_inventory() {
+  find "$RAILWAY_DATA_DIR" -mindepth 1 \
+    ! -name '.karnel-managed' ! -name '.karnel-manifest' ! -name '.karnel-inventory' \
+    -printf '%y %P\n' | LC_ALL=C sort
+}
+
+_railway_write_data_metadata() {
+  mkdir -p "$RAILWAY_DATA_DIR" || return 1
+  printf '%s\n' 'Karnel Railway CLI data' >"$_RAILWAY_DATA_MARKER" || return 1
+  _railway_data_inventory >"$_RAILWAY_DATA_INVENTORY" || return 1
+  find "$RAILWAY_DATA_DIR" -type f \
+    ! -name '.karnel-managed' ! -name '.karnel-manifest' ! -name '.karnel-inventory' \
+    -exec sha256sum {} + | LC_ALL=C sort >"$_RAILWAY_DATA_MANIFEST"
+}
+
+_railway_data_is_karnel_owned() {
+  [ -f "$_RAILWAY_DATA_MARKER" ] && [ -f "$_RAILWAY_DATA_MANIFEST" ] && [ -f "$_RAILWAY_DATA_INVENTORY" ] &&
+    [ "$(<"$_RAILWAY_DATA_MARKER")" = 'Karnel Railway CLI data' ] &&
+    cmp -s "$_RAILWAY_DATA_INVENTORY" <(_railway_data_inventory) &&
+    (cd / && sha256sum -c "$_RAILWAY_DATA_MANIFEST" >/dev/null 2>&1)
+}
+
+_railway_mark_install() {
+  mkdir -p "$(dirname "$_RAILWAY_MARKER")" "$RAILWAY_DATA_DIR" || return 1
+  sha256sum "$PREFIX/bin/railway" >"$_RAILWAY_MARKER" || return 1
+  _railway_write_data_metadata
+}
+
+_railway_command_is_karnel_owned() {
+  [ -f "$_RAILWAY_MARKER" ] &&
+    [ "$(sha256sum "$PREFIX/bin/railway" 2>/dev/null)" = "$(<"$_RAILWAY_MARKER")" ]
+}
+
+_railway_proot_wrapper_owned() {
+  [[ -f "$PREFIX/bin/railway" ]] && grep -qF '# Karnel Railway PRoot wrapper' "$PREFIX/bin/railway"
+}
+
+_railway_install_proot() {
+  if ! command -v proot-distro >/dev/null 2>&1; then
+    pkg install -y proot-distro &>>"$LOG_FILE" || return 1
+  fi
+  if [[ ! -d "$PREFIX/var/lib/proot-distro/installed-rootfs/ubuntu" && ! -d "$PREFIX/var/lib/proot-distro/containers/ubuntu/rootfs" ]]; then
+    proot-distro install ubuntu &>>"$LOG_FILE" || return 1
+  fi
+  proot-distro login ubuntu -- bash -lc 'export PATH=/usr/bin:/bin; apt-get -o Dir::Etc::sourcelist="sources.list" -o Dir::Etc::sourceparts="-" update && DEBIAN_FRONTEND=noninteractive apt-get -o Dir::Etc::sourcelist="sources.list" -o Dir::Etc::sourceparts="-" install -y nodejs ca-certificates && corepack npm install -g --allow-scripts=@railway/cli @railway/cli@5.35.1' &>>"$LOG_FILE" || return 1
+  proot-distro login ubuntu -- /usr/bin/railway --version &>>"$LOG_FILE" || return 1
+
+  if [[ -e "$PREFIX/bin/railway" || -L "$PREFIX/bin/railway" ]]; then
+    if _railway_proot_wrapper_owned; then
+      :
+    elif [[ -L "$PREFIX/bin/railway" && ! -e "$PREFIX/bin/railway" ]]; then
+      rm -f "$PREFIX/bin/railway"
+    else
+      log_error "Refusing to replace unowned railway command: $PREFIX/bin/railway"
+      return 1
+    fi
+  fi
+
+  mkdir -p "$RAILWAY_DATA_DIR" "$PREFIX/bin" || return 1
+  chmod 700 "$RAILWAY_DATA_DIR"
+  local temporary
+  temporary="$(mktemp "$PREFIX/bin/.railway.XXXXXX")" || return 1
+  cat >"$temporary" <<WRAPPER
+#!$PREFIX/bin/bash
+# Karnel Railway PRoot wrapper
+exec proot-distro login --termux-home ubuntu -- /usr/bin/railway "\$@"
+WRAPPER
+  chmod 755 "$temporary"
+  mv -f "$temporary" "$PREFIX/bin/railway" || { rm -f "$temporary"; return 1; }
+  : >"$RAILWAY_DATA_DIR/.karnel-proot"
+}
 
 _install_railway_manual() {
   loading "Downloading Railway CLI for ARM64" _install_railway_manual_impl
@@ -30,7 +106,8 @@ _install_railway_manual_impl() {
   if ! curl -fsSL --connect-timeout 15 "$tarball_url" -o "$RAILWAY_DATA_DIR/railway.tar.gz" 2>>"$LOG_FILE"; then
     log_warn "ARM64 binary not available. Railway CLI does not provide ARM Linux builds."
     log_info "Use 'npx @railway/cli' instead."
-    return 1
+    rmdir "$RAILWAY_DATA_DIR" 2>/dev/null || true
+    return 2
   fi
 
   tar -zxf "$RAILWAY_DATA_DIR/railway.tar.gz" -C "$RAILWAY_DATA_DIR" 2>>"$LOG_FILE" || {
@@ -47,14 +124,23 @@ _install_railway_manual_impl() {
 
   chmod +x "$found_bin"
   ln -sf "$found_bin" "$PREFIX/bin/railway" 2>/dev/null
+  _railway_mark_install || return 1
 
   return 0
 }
 
 install_railway() {
   if command -v railway &>/dev/null; then
-    log_info "Railway CLI is already installed"
-    return 2
+    if railway --version &>/dev/null; then
+      log_info "Railway CLI is already installed"
+      return 2
+    fi
+    if _railway_proot_wrapper_owned; then
+      rm -f "$PREFIX/bin/railway"
+    else
+      log_error "Existing railway command is not usable or managed by Karnel"
+      return 1
+    fi
   fi
 
   log_info "Installing Railway CLI..."
@@ -63,29 +149,37 @@ install_railway() {
 
   if npm install -g @railway/cli --legacy-peer-deps &>>"$LOG_FILE"; then
     command -v termux-fix-shebang &>/dev/null && termux-fix-shebang "$(command -v railway 2>/dev/null)" &>/dev/null
+    _railway_mark_install || return 1
     log_success "Railway CLI installed via npm"
     return 0
   fi
 
-  log_warn "npm install failed for @railway/cli on Termux ARM"
-  log_info "Trying manual ARM64 binary download..."
-
-  if _install_railway_manual; then
-    log_success "Railway CLI installed (ARM64 Linux binary)"
+  log_warn "Native Railway CLI is unavailable on Termux Android; using Ubuntu Proot."
+  if _railway_install_proot; then
+    log_success "Railway CLI installed through Ubuntu Proot"
     return 0
   fi
 
-  log_error "Railway CLI installation failed. Railway does not provide official ARM Linux builds."
-  log_info "Workaround: use 'npx @railway/cli' instead of 'railway' command."
-  log_info "Or install Railway on a cloud machine."
+  log_error "Railway CLI installation failed in Ubuntu Proot."
   return 1
 }
 
 uninstall_railway() {
   log_info "Uninstalling Railway CLI..."
-  npm uninstall -g @railway/cli &>>"$LOG_FILE" || true
-  rm -f "$PREFIX/bin/railway" 2>/dev/null
-  rm -rf "$RAILWAY_DATA_DIR" 2>/dev/null
+  if _railway_proot_wrapper_owned; then
+    proot-distro login ubuntu -- npm uninstall -g @railway/cli &>>"$LOG_FILE" || true
+    rm -f "$PREFIX/bin/railway"
+    [[ -f "$RAILWAY_DATA_DIR/.karnel-proot" ]] && rm -rf "$RAILWAY_DATA_DIR"
+    log_success "Railway CLI uninstalled"
+    return 0
+  fi
+  if _railway_command_is_karnel_owned; then
+    npm uninstall -g @railway/cli &>>"$LOG_FILE" || true
+    rm -f "$_RAILWAY_MARKER"
+  else
+    log_warn "Keeping existing railway command not managed by Karnel"
+  fi
+  _railway_data_is_karnel_owned && rm -rf "$RAILWAY_DATA_DIR" 2>/dev/null
   log_success "Railway CLI uninstalled"
   return 0
 }

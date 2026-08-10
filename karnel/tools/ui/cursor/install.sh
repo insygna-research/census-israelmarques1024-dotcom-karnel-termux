@@ -1,15 +1,21 @@
 #!/usr/bin/env bash
 
 import "@/utils/log"
+import "@/utils/uninstall"
 
 LOG_FILE="$KARNEL_CACHE/install_ui.log"
 TERMUX_DIR="$HOME/.termux"
+CURSOR_BEGIN="# Karnel cursor begin"
+CURSOR_END="# Karnel cursor end"
 
 _install_cursor_impl() {
 	mkdir -p "$(dirname "$LOG_FILE")" "$TERMUX_DIR"
 
-	cat >"$TERMUX_DIR/colors.properties" <<'EOF'
+	cat >>"$TERMUX_DIR/colors.properties" <<EOF
+
+$CURSOR_BEGIN
 cursor=#00FF00
+$CURSOR_END
 EOF
 
 	log_success "Cursor color set to #00FF00 (green)"
@@ -17,7 +23,7 @@ EOF
 }
 
 install_cursor() {
-	if [[ -f "$TERMUX_DIR/colors.properties" ]]; then
+	if grep -qF "$CURSOR_BEGIN" "$TERMUX_DIR/colors.properties" 2>/dev/null; then
 		log_info "Cursor Color already configured"
 		return 0
 	fi
@@ -26,8 +32,11 @@ install_cursor() {
 }
 
 _uninstall_cursor_impl() {
-	if [[ -f "$TERMUX_DIR/colors.properties" ]]; then
-		rm "$TERMUX_DIR/colors.properties"
+	if grep -qF "$CURSOR_BEGIN" "$TERMUX_DIR/colors.properties" 2>/dev/null; then
+		if ! remove_marked_block "$TERMUX_DIR/colors.properties" "$CURSOR_BEGIN" "$CURSOR_END"; then
+			log_warn "Keeping malformed Karnel cursor configuration"
+			return 0
+		fi
 		log_success "Cursor Color uninstalled"
 	else
 		log_warn "Cursor Color not configured"
@@ -35,7 +44,7 @@ _uninstall_cursor_impl() {
 }
 
 uninstall_cursor() {
-	if [[ ! -f "$TERMUX_DIR/colors.properties" ]]; then
+	if ! grep -qF "$CURSOR_BEGIN" "$TERMUX_DIR/colors.properties" 2>/dev/null; then
 		log_info "Cursor Color is not installed"
 		return 0
 	fi

@@ -207,6 +207,12 @@ clone_repo() {
 		log_info "Developer installation detected"
 		log_ok "Using local repository"
 	elif [[ -d "$KARNEL_REPO/.git" ]]; then
+		local origin_url
+		origin_url="$(git -C "$KARNEL_REPO" remote get-url origin 2>/dev/null)"
+		if [[ "$origin_url" != "$REPO" && "$origin_url" != "${REPO%.git}" ]]; then
+			log_fail "Existing Karnel repository has an unexpected origin"
+			return 1
+		fi
 		progress_bar 3 10
 		if [[ -n "$RELEASE_REF" ]]; then
 			if ! git -C "$KARNEL_REPO" fetch --depth=1 origin "refs/tags/$BRANCH" &>/dev/null ||
@@ -215,7 +221,7 @@ clone_repo() {
 				return 1
 			fi
 		else
-			if ! git -C "$KARNEL_REPO" pull origin "$BRANCH" &>/dev/null; then
+			if ! git -c core.hooksPath=/dev/null -C "$KARNEL_REPO" pull origin "$BRANCH" &>/dev/null; then
 				log_fail "Failed to update existing repository"
 				return 1
 			fi
@@ -224,7 +230,6 @@ clone_repo() {
 		echo
 		log_ok "Repository updated"
 	else
-		_INSTALL_CREATED_KARNEL_REPO=true
 		progress_bar 0 10
 		git clone --depth=1 -b "$BRANCH" "$REPO" "$KARNEL_REPO" &>/dev/null &
 		local pid=$!
@@ -235,6 +240,7 @@ clone_repo() {
 			sleep 0.5
 		done
 		wait "$pid" || { log_fail "Failed to clone repository"; _cleanup_failed; exit 1; }
+		_INSTALL_CREATED_KARNEL_REPO=true
 		progress_bar 10 10
 		echo
 		log_ok "Repository cloned"

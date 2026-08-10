@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+TEST_ROOT=$(mktemp -d)
+trap 'rm -rf "$TEST_ROOT"' EXIT
+
+log_info() { :; }
+log_success() { :; }
+
+assert_unowned_binary_is_preserved() (
+  local tool="$1" installer="$2" uninstall_function="$3"
+  export PREFIX="$TEST_ROOT/$tool-prefix"
+  mkdir -p "$PREFIX/bin"
+  printf '#!/usr/bin/env bash\nexit 99\n' > "$PREFIX/bin/$tool"
+  chmod +x "$PREFIX/bin/$tool"
+  # shellcheck source=/dev/null
+  source "$ROOT_DIR/$installer"
+  "$uninstall_function"
+  grep -qF 'exit 99' "$PREFIX/bin/$tool"
+)
+
+assert_unowned_binary_is_preserved sqlmap karnel/tools/security/sqlmap/install.sh uninstall_sqlmap
+assert_unowned_binary_is_preserved amass karnel/tools/security/amass/install.sh uninstall_amass
+assert_unowned_binary_is_preserved burpsuite karnel/tools/security/burpsuite/install.sh uninstall_burpsuite
+assert_unowned_binary_is_preserved enum4linux karnel/tools/security/enum4linux/install.sh uninstall_enum4linux
+assert_unowned_binary_is_preserved ffuf karnel/tools/security/ffuf/install.sh uninstall_ffuf
+assert_unowned_binary_is_preserved gobuster karnel/tools/security/gobuster/install.sh uninstall_gobuster
+assert_unowned_binary_is_preserved msfconsole karnel/tools/security/metasploit/install.sh uninstall_metasploit
+assert_unowned_binary_is_preserved nikto karnel/tools/security/nikto/install.sh uninstall_nikto
+assert_unowned_binary_is_preserved subfinder karnel/tools/security/subfinder/install.sh uninstall_subfinder
+assert_unowned_binary_is_preserved theharvester karnel/tools/security/theharvester/install.sh uninstall_theharvester
+assert_unowned_binary_is_preserved whatweb karnel/tools/security/whatweb/install.sh uninstall_whatweb
+assert_unowned_binary_is_preserved zap karnel/tools/security/zap/install.sh uninstall_zap
+assert_unowned_binary_is_preserved dnsrecon karnel/tools/security/dnsrecon/install.sh uninstall_dnsrecon
+assert_unowned_binary_is_preserved masscan karnel/tools/security/masscan/install.sh uninstall_masscan
+
+assert_checksum_marker_ownership() (
+  export PREFIX="$TEST_ROOT/marker-prefix"
+  mkdir -p "$PREFIX/bin" "$PREFIX/share/karnel-installers"
+  printf 'karnel binary\n' > "$PREFIX/bin/amass"
+  sha256sum "$PREFIX/bin/amass" > "$PREFIX/share/karnel-installers/amass"
+  # shellcheck source=../karnel/tools/security/amass/install.sh
+  source "$ROOT_DIR/karnel/tools/security/amass/install.sh"
+  uninstall_amass
+  [[ ! -e "$PREFIX/bin/amass" ]]
+
+  printf 'karnel binary\n' > "$PREFIX/bin/amass"
+  sha256sum "$PREFIX/bin/amass" > "$PREFIX/share/karnel-installers/amass"
+  printf 'user replacement\n' > "$PREFIX/bin/amass"
+  uninstall_amass
+  grep -qF 'user replacement' "$PREFIX/bin/amass"
+)
+assert_checksum_marker_ownership
+
+assert_cursor_and_railway_ownership() (
+  export HOME="$TEST_ROOT/owned-home"
+  export PREFIX="$TEST_ROOT/owned-prefix"
+  export KARNEL_CACHE="$TEST_ROOT/cache"
+  mkdir -p "$HOME/.local/share/karnel-data/cursor" "$HOME/.local/share/karnel-data/railway" "$PREFIX/bin" "$KARNEL_CACHE"
+  import() { :; }
+  log_warn() { :; }
+
+  printf 'external cursor\n' >"$PREFIX/bin/cursor"
+  printf 'external cursor-agent\n' >"$PREFIX/bin/cursor-agent"
+  printf 'external data\n' >"$HOME/.local/share/karnel-data/cursor/data"
+  source "$ROOT_DIR/karnel/tools/ai/cursor-cli/install.sh"
+  uninstall_cursor_cli || [[ $? -eq 2 ]]
+  [[ -f "$PREFIX/bin/cursor" && -f "$PREFIX/bin/cursor-agent" ]]
+  [[ -f "$HOME/.local/share/karnel-data/cursor/data" ]]
+
+  rm -rf "$PREFIX/bin" "$HOME/.local/share/karnel-data/cursor"
+  mkdir -p "$PREFIX/bin" "$HOME/.local/share/karnel-data/cursor"
+  printf 'payload\n' >"$HOME/.local/share/karnel-data/cursor/data"
+  _cursor_write_data_metadata
+  _create_cursor_wrapper
+  uninstall_cursor_cli
+  [[ ! -e "$PREFIX/bin/cursor" && ! -e "$PREFIX/bin/cursor-agent" ]]
+  [[ ! -e "$HOME/.local/share/karnel-data/cursor" ]]
+
+  printf 'external railway\n' >"$PREFIX/bin/railway"
+  printf 'external data\n' >"$HOME/.local/share/karnel-data/railway/data"
+  npm() { return 99; }
+  source "$ROOT_DIR/karnel/tools/deploy/railway/install.sh"
+  uninstall_railway
+  [[ -f "$PREFIX/bin/railway" && -f "$HOME/.local/share/karnel-data/railway/data" ]]
+
+  rm -rf "$PREFIX/bin" "$HOME/.local/share/karnel-data/railway"
+  mkdir -p "$PREFIX/bin" "$HOME/.local/share/karnel-data/railway"
+  printf 'karnel railway\n' >"$PREFIX/bin/railway"
+  printf 'payload\n' >"$HOME/.local/share/karnel-data/railway/data"
+  _railway_mark_install
+  npm() { [[ "$1" == uninstall ]]; rm -f "$PREFIX/bin/railway"; }
+  uninstall_railway
+  [[ ! -e "$PREFIX/bin/railway" && ! -e "$HOME/.local/share/karnel-data/railway" ]]
+)
+assert_cursor_and_railway_ownership
+
+printf 'Security uninstaller ownership: 16 passed\n'

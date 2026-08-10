@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 unset LD_LIBRARY_PATH
 unset LD_PRELOAD
-NODE_GLIBC="$HOME/.local/share/karnel-data/node-glibc/bin/node"
+NODE_GLIBC="${XDG_DATA_HOME:-$HOME/.local/share}/karnel-data/node-glibc/bin/node"
 NODE_GLIBC_DIR="$(dirname "$NODE_GLIBC")"
 
 if [[ ! -x "$NODE_GLIBC" ]]; then
@@ -39,7 +39,7 @@ fi
 
 PRECHECK="${KARNEL_PATH:-$HOME/.local/share/karnel}/tools/npm/turbopack/bin/precheck-native.js"
 if [[ -f "$PRECHECK" && -d "$PROJECT_DIR/node_modules" ]]; then
-	"$NODE_GLIBC" "$PRECHECK" 2>/dev/null || true
+	(cd "$PROJECT_DIR" && "$NODE_GLIBC" "$PRECHECK") 2>/dev/null || true
 fi
 
 HAS_HOSTNAME=false

@@ -45,6 +45,6 @@ karnel update ai --hermes-agent
 
 # Notes
 
-- Installed using the official installer via: `curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash`
+- Installed by cloning the official Hermes Agent repository.
 - Command: `hermes`
 - Requires configuration for optimal performance
