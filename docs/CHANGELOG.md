@@ -1,5 +1,9 @@
 # Documentation Changelog
 
+## 4.13.13 - 2026-08-10
+
+- Corrected the portable npm postinstall fixture used by release validation.
+
 ## 4.13.12 - 2026-08-10
 
 - Fixed the npm postinstall release contract so it runs on GitHub Actions and

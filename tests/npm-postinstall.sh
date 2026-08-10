@@ -14,7 +14,7 @@ printf '#!%s\n' "$BASH" >"$FAKE_BIN/npm"
 printf '%s\n' \
   'if [[ "$3" == "ignore-scripts" ]]; then' \
   '  printf "false\\n"' \
-  'fi' >"$FAKE_BIN/npm"
+  'fi' >>"$FAKE_BIN/npm"
 printf '#!%s\n' "$BASH" >"$FAKE_BIN/bash"
 printf '%s\n' 'printf "%s\n" "$@" >"$NPM_POSTINSTALL_ARGS"' >>"$FAKE_BIN/bash"
 chmod +x "$FAKE_BIN/npm" "$FAKE_BIN/bash"
